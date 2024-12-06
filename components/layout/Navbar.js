@@ -19,8 +19,8 @@ export default function Navbar() {
           <Link href="/explore" className="text-white">Explore</Link>
           <Link href="/compare" className="text-white">Compare</Link>
           <Link href="/suggest" className="text-white">Suggestions</Link>
-          <Link href="/login" className="text-white">Login</Link>
-          <Link href="/register" className="text-white">Register</Link>
+          <Link href="/auth/login" className="text-white">Login</Link>
+          <Link href="/auth/register" className="text-white">Register</Link>
         </div>
       </div>
     </nav>
