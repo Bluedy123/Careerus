@@ -12,16 +12,6 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/dashboard'); // Redirect to dashboard if user is already logged in
-      }
-    };
-    checkSession();
-  }, [router]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -29,7 +19,7 @@ export default function Login() {
       setError('Email and password are required.');
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
