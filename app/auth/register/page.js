@@ -130,7 +130,7 @@ export default function Register() {
           </div>
 
           <div className="text-sm text-center">
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
               Already have an account? Sign in
             </Link>
           </div>
