@@ -20,6 +20,7 @@ export default function Navbar() {
           <Link href="/compare" className="text-white">Compare</Link>
           <Link href="/suggest" className="text-white">Suggestions</Link>
           <Link href="/login" className="text-white">Login</Link>
+          <Link href="/register" className="text-white">Register</Link>
         </div>
       </div>
     </nav>
