@@ -53,7 +53,7 @@ export default function Register() {
       setFormData({ email: '', password: '', confirmPassword: '' });
 
       // Redirect to profile page after successful registration
-      router.push('/setup-profile');
+      router.push('/auth/setup-profile');
     } catch (error) {
       // Custom error handling 
       if (error.code === '23505') {

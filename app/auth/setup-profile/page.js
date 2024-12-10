@@ -104,7 +104,7 @@ export default function SetupProfile() {
       }
 
       if (!user) throw new Error('No user found');
-
+      
       // Use upsert to avoid duplicate inserts
       const { error } = await supabase
         .from('user_profiles')
@@ -114,8 +114,7 @@ export default function SetupProfile() {
         }, { onConflict: 'id' });
 
       if (error) throw error;
-
-      router.push('/profile');
+      router.push('/dashboard');
     } catch (error) {
       setError(error.message);
     } finally {
@@ -129,7 +128,6 @@ export default function SetupProfile() {
     }
     return [...array, value];
   };
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
@@ -137,13 +135,11 @@ export default function SetupProfile() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Complete Your Profile
           </h2>
-
           {error && (
             <div className="mb-4 bg-red-50 text-red-500 p-3 rounded">
               {error}
             </div>
           )}
-
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div>
@@ -161,7 +157,6 @@ export default function SetupProfile() {
                 })}
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Bio
@@ -176,7 +171,6 @@ export default function SetupProfile() {
                 })}
               />
             </div>
-
             {/* Role Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -199,7 +193,6 @@ export default function SetupProfile() {
                 ))}
               </select>
             </div>
-
             {/* Education */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -220,7 +213,7 @@ export default function SetupProfile() {
                 ))}
               </select>
             </div>
-
+            
             {/* Skills */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -247,7 +240,6 @@ export default function SetupProfile() {
                 ))}
               </div>
             </div>
-
             {/* Interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -274,7 +266,6 @@ export default function SetupProfile() {
                 ))}
               </div>
             </div>
-
             {/* Submit Button */}
             <div>
               <button
