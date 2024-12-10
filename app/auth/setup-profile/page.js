@@ -115,7 +115,7 @@ export default function SetupProfile() {
 
       if (error) throw error;
 
-      router.push('/dashboard');
+      router.push('/profile');
     } catch (error) {
       setError(error.message);
     } finally {
