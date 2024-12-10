@@ -52,8 +52,8 @@ export default function SetupProfile() {
   const [profileData, setProfileData] = useState({
     full_name: '',
     bio: '',
-    role: '',
     education_level: '',
+    field_of_study: '',
     interests: [],
     skills: []
   });
@@ -63,15 +63,27 @@ export default function SetupProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        // Check if profile already exists
-        const { data: profile } = await supabase
+        // First, check if user exists in users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          setError('Error fetching user data');
+          return;
+        }
+
+        // Then check for profile
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .single();
           
         if (profile) {
-          router.push('/dashboard'); // Redirect if profile exists
+          router.push('/profile');
         }
       } else {
         router.push('/login');
@@ -106,14 +118,32 @@ export default function SetupProfile() {
       if (!user) throw new Error('No user found');
       
       // Use upsert to avoid duplicate inserts
-      const { error } = await supabase
-        .from('user_profiles')
+      const { error: userError } = await supabase
+        .from('users')
         .upsert({
-          id: user.id,
-          ...profileData
-        }, { onConflict: 'id' });
+          user_id: user.id,
+          email: user.email,
+          role: profileData.role,
+          created_at: new Date().toISOString()
+        });
 
-      if (error) throw error;
+      if (userError) throw userError;
+
+      // Then create profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: user.id,
+          full_name: profileData.full_name,
+          bio: profileData.bio,
+          education_level: profileData.education_level,
+          field_of_study: profileData.field_of_study,
+          interests: profileData.interests,
+          skills: profileData.skills,
+        });
+
+      if (profileError) throw profileError;
+
       router.push('/profile');
     } catch (error) {
       setError(error.message);
@@ -213,7 +243,24 @@ export default function SetupProfile() {
                 ))}
               </select>
             </div>
-            
+
+            {/* Field of Study */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Field of Study
+              </label>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                value={profileData.field_of_study}
+                onChange={(e) => setProfileData({
+                  ...profileData,
+                  field_of_study: e.target.value
+                })}
+                placeholder="e.g., Computer Science, Business, etc."
+              />
+            </div>
+
             {/* Skills */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -240,6 +287,7 @@ export default function SetupProfile() {
                 ))}
               </div>
             </div>
+
             {/* Interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -266,6 +314,7 @@ export default function SetupProfile() {
                 ))}
               </div>
             </div>
+
             {/* Submit Button */}
             <div>
               <button
