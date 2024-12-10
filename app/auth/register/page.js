@@ -52,7 +52,7 @@ export default function Register() {
       // Reset form fields after successful registration 
       setFormData({ email: '', password: '', confirmPassword: '' });
 
-      // Redirect to login page after successful registration
+      // Redirect to profile page after successful registration
       router.push('/setup-profile');
     } catch (error) {
       // Custom error handling 

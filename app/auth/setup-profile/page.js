@@ -54,7 +54,6 @@ export default function SetupProfile() {
     bio: '',
     role: '',
     education_level: '',
-    field_of_study: '',
     interests: [],
     skills: []
   });
@@ -70,13 +69,6 @@ export default function SetupProfile() {
           .select('*')
           .eq('id', user.id)
           .single();
-
-        // Log profile fetching errors for debugging
-        if (profileError && profileError.code !== 'PGRST116') {
-            console.error('Error fetching profile:', profileError.message);
-            setError('Failed to fetch profile.');
-            return;
-          }
           
         if (profile) {
           router.push('/dashboard'); // Redirect if profile exists
@@ -227,21 +219,6 @@ export default function SetupProfile() {
                   <option key={level} value={level}>{level}</option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Field of Study
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                value={profileData.field_of_study}
-                onChange={(e) => setProfileData({
-                  ...profileData,
-                  field_of_study: e.target.value
-                })}
-              />
             </div>
 
             {/* Skills */}
