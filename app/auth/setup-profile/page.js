@@ -82,7 +82,7 @@ export default function SetupProfile() {
           router.push('/dashboard'); // Redirect if profile exists
         }
       } else {
-        router.push('/auth/login');
+        router.push('/login');
       }
     };
 
