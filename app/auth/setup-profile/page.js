@@ -114,7 +114,7 @@ export default function SetupProfile() {
         }, { onConflict: 'id' });
 
       if (error) throw error;
-      router.push('/dashboard');
+      router.push('/profile');
     } catch (error) {
       setError(error.message);
     } finally {

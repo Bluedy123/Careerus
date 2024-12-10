@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { User, MapPin, Book, Briefcase, Edit } from 'lucide-react';
+import { User, Book, Briefcase, Edit } from 'lucide-react';
 
 export default function ProfileView() {
   const router = useRouter();
@@ -29,22 +29,23 @@ export default function ProfileView() {
         .from('user_profiles')
         .select(`
           *,
-          users:user_id (
-            email
+          users!user_id (
+            email,
+            role
           )
         `)
         .eq('user_id', user.id)
         .single();
 
-        if (profileError) throw profileError;
+      if (profileError) throw profileError;
 
-        //Validate and parse skills/interests as arrays to avoid runtime errors
-        const validatedProfile = {
-          ...profileData,
-          skills: Array.isArray(profileData.skills) ? profileData.skills : [],
-          interests: Array.isArray(profileData.interests) ? profileData.interests : [],
-        };
-        setProfile(validatedProfile);
+      // Validate and parse skills/interests as arrays
+      const validatedProfile = {
+        ...profileData,
+        skills: Array.isArray(profileData.skills) ? profileData.skills : [],
+        interests: Array.isArray(profileData.interests) ? profileData.interests : [],
+      };
+      setProfile(validatedProfile);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -97,9 +98,9 @@ export default function ProfileView() {
                 </div>
                 <div className="ml-4 text-white">
                   <h1 className="text-2xl font-bold">
-                    {profile.first_name} {profile.last_name}
+                    {profile.full_name}
                   </h1>
-                  <p className="text-blue-100">{profile.current_title}</p>
+                  <p className="text-blue-100">{profile.users?.role}</p>
                 </div>
               </div>
               <button
@@ -114,14 +115,6 @@ export default function ProfileView() {
 
           {/* Main Content */}
           <div className="p-6 sm:p-8">
-            {/* Location */}
-            {profile.location && (
-              <div className="flex items-center text-gray-600 mb-6">
-                <MapPin className="w-5 h-5 mr-2" />
-                <span>{profile.location}</span>
-              </div>
-            )}
-
             {/* Bio */}
             {profile.bio && (
               <div className="mb-8">
@@ -152,9 +145,7 @@ export default function ProfileView() {
                   {profile.skills.map((skill, index) => (
                     <span
                       key={index}
-                      //Added hover effect for better interactivity
-                      className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-blue-100" 
-                      onClick={() => alert(`Skill: ${skill}`)} //Example interaction for skills
+                      className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
                     >
                       {skill}
                     </span>
@@ -171,8 +162,7 @@ export default function ProfileView() {
                   {profile.interests.map((interest, index) => (
                     <span
                       key={index}
-                      className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-100" 
-                      onClick={() => alert(`Interest: ${interest}`)} //Example interaction for interests
+                      className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
                     >
                       {interest}
                     </span>
@@ -187,7 +177,7 @@ export default function ProfileView() {
               <div className="flex items-center text-gray-600">
                 <div className="mr-6">
                   <span className="block text-sm text-gray-500">Email</span>
-                  <span>{profile.users?.email || 'N/A'}</span> {/* Fallback for email */}
+                  <span>{profile.users?.email || 'N/A'}</span>
                 </div>
               </div>
             </div>
