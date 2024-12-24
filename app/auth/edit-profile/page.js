@@ -117,42 +117,67 @@ export default function EditProfile() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmDelete = window.confirm('Are you sure you want to delete your account?');
-    if (!confirmDelete) return;
     try {
       setLoading(true);
       setError(null);
-
+  
       if (!user) throw new Error('No user found');
-
-      // Delete profile first (due to foreign key constraints)
+  
+      // 1. Delete from user_career_preferences
+      const { error: preferencesError } = await supabase
+        .from('user_career_preferences')
+        .delete()
+        .eq('user_id', user.id);
+  
+      if (preferencesError) throw preferencesError;
+  
+      // 2. Delete from career_recommendations
+      const { error: recommendationsError } = await supabase
+        .from('career_recommendations')
+        .delete()
+        .eq('user_id', user.id);
+  
+      if (recommendationsError) throw recommendationsError;
+  
+      // 3. Delete from user_skills
+      const { error: skillsError } = await supabase
+        .from('user_skills')
+        .delete()
+        .eq('user_id', user.id);
+  
+      if (skillsError) throw skillsError;
+  
+      // 4. Delete from user_profiles
       const { error: profileError } = await supabase
         .from('user_profiles')
         .delete()
         .eq('user_id', user.id);
-
+  
       if (profileError) throw profileError;
-
-      // Delete user record
+  
+      // 5. Delete from users table
       const { error: userError } = await supabase
         .from('users')
         .delete()
         .eq('user_id', user.id);
-
+  
       if (userError) throw userError;
-
-      // Delete auth user
+  
+      // 6. Sign out the user
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+  
+      // 7. Delete the Supabase auth user (requires admin key)
       const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
       if (authError) throw authError;
-
+  
       router.push('/login');
     } catch (error) {
       setError(error.message);
-    } finally {
       setLoading(false);
-      setShowDeleteConfirm(false);
     }
   };
+
 
   const toggleSelection = (array, value) => {
     const index = array.indexOf(value);
