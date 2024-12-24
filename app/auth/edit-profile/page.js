@@ -169,10 +169,12 @@ export default function EditProfile() {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ userId: user.id })
         });
     
         if (!response.ok) {
-          throw new Error('Failed to delete authentication data');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to delete authentication data');
         }
     
         // Sign out after successful deletion

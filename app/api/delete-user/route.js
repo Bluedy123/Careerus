@@ -1,30 +1,39 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function DELETE(request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    if (!user) throw new Error('No user found');
+    const { userId } = await request.json();
 
-    // Delete from Supabase auth (requires admin rights)
-    const adminAuthClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-    
-    const { error: deleteAuthError } = await adminAuthClient.auth.admin.deleteUser(
-      user.id
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
+      userId
     );
 
-    if (deleteAuthError) throw deleteAuthError;
+    if (deleteError) {
+      return NextResponse.json(
+        { error: deleteError.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Delete user error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete user' },
+      { status: 500 }
+    );
   }
 }
