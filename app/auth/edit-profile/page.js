@@ -171,10 +171,24 @@ export default function EditProfile() {
       const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
       if (authError) throw authError;
   
+      const response = await fetch('/api/delete-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete user account');
+      }
+  
+      await supabase.auth.signOut();
       router.push('/login');
     } catch (error) {
       setError(error.message);
+    } finally {
       setLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
 

@@ -24,14 +24,50 @@ export default function Login() {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with Supabase auth
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
 
-      router.push('/profile'); // Redirect after successful login
+      // Check if user exists in your users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_id', signInData.user.id)
+        .single();
+
+      if (userError) {
+        // If user doesn't exist in users table yet, create it
+        const { error: createError } = await supabase
+          .from('users')
+          .insert({
+            user_id: signInData.user.id,
+            email: email,
+            password_hash: 'hashed', // Since auth is handled by Supabase
+            role: 'user', // Default role
+            created_at: new Date().toISOString()
+          });
+
+        if (createError) throw createError;
+      }
+
+      // Check if user has a profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', signInData.user.id)
+        .single();
+
+      // Redirect based on profile existence
+      if (profileData) {
+        router.push('/profile'); // User has profile, go to profile page
+      } else {
+        router.push('/setup-profile'); // User needs to set up profile
+      }
+
       router.refresh();
     } catch (error) {
       setError(error.message);
@@ -94,7 +130,7 @@ export default function Login() {
           </div>
 
           <div className="text-sm text-center">
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
               Don't have an account? Sign up
             </Link>
           </div>
