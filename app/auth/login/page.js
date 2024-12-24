@@ -51,7 +51,7 @@ export default function Login() {
         return;
       }
 
-      router.push('/dashboard'); // Redirect after successful login
+      router.push('/profile'); // Redirect after successful login
       router.refresh();
     } catch (error) {
       setError(error.message);
