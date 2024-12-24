@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { User, Book, Briefcase, Edit } from 'lucide-react';
+import { User, Building2, MapPin, Globe, Users, BookOpen } from 'lucide-react';
 
 export default function ProfileView() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,27 +26,36 @@ export default function ProfileView() {
         return;
       }
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select(`
-          *,
-          users!user_id (
-            email,
-            role
-          )
-        `)
+      // First get user role
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
         .eq('user_id', user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (userError) throw userError;
+      setUserRole(userData.role);
 
-      // Validate and parse skills/interests as arrays
-      const validatedProfile = {
-        ...profileData,
-        skills: Array.isArray(profileData.skills) ? profileData.skills : [],
-        interests: Array.isArray(profileData.interests) ? profileData.interests : [],
-      };
-      setProfile(validatedProfile);
+      // Then get appropriate profile based on role
+      if (userData.role === 'student') {
+        const { data: studentProfile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        setProfile(studentProfile);
+      } else {
+        const { data: employerProfile, error: profileError } = await supabase
+          .from('employer_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        setProfile(employerProfile);
+      }
     } catch (error) {
       setError(error.message);
     } finally {
@@ -94,20 +104,25 @@ export default function ProfileView() {
             <div className="flex justify-between items-start">
               <div className="flex items-center">
                 <div className="bg-white p-3 rounded-full">
-                  <User className="w-12 h-12 text-blue-600" />
+                  {userRole === 'student' ? (
+                    <User className="w-12 h-12 text-blue-600" />
+                  ) : (
+                    <Building2 className="w-12 h-12 text-blue-600" />
+                  )}
                 </div>
                 <div className="ml-4 text-white">
                   <h1 className="text-2xl font-bold">
-                    {profile.full_name}
+                    {userRole === 'student' ? profile.full_name : profile.company_name}
                   </h1>
-                  <p className="text-blue-100">{profile.users?.role}</p>
+                  <p className="text-blue-100">
+                    {userRole === 'student' ? profile.field_of_study : profile.industry}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => router.push('/auth/edit-profile')}
-                className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 flex items-center"
+                className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20"
               >
-                <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </button>
             </div>
@@ -115,7 +130,7 @@ export default function ProfileView() {
 
           {/* Main Content */}
           <div className="p-6 sm:p-8">
-            {/* Bio */}
+            {/* Bio Section */}
             {profile.bio && (
               <div className="mb-8">
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
@@ -123,64 +138,103 @@ export default function ProfileView() {
               </div>
             )}
 
-            {/* Education */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Education</h2>
-              <div className="flex items-start">
-                <Book className="w-5 h-5 text-gray-400 mr-3 mt-1" />
-                <div>
-                  <p className="font-medium text-gray-900">{profile.education_level}</p>
-                  {profile.field_of_study && (
-                    <p className="text-gray-600">{profile.field_of_study}</p>
+            {userRole === 'student' ? (
+              // Student-specific sections
+              <>
+                {/* Education */}
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Education</h2>
+                  <div className="flex items-start">
+                    <BookOpen className="w-5 h-5 text-gray-400 mr-3 mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">{profile.education_level}</p>
+                      {profile.field_of_study && (
+                        <p className="text-gray-600">{profile.field_of_study}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skills */}
+                {profile.skills && profile.skills.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Skills</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Interests */}
+                {profile.interests && profile.interests.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Interests</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.interests.map((interest, index) => (
+                        <span
+                          key={index}
+                          className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              // Employer-specific sections
+              <>
+                {/* Company Details */}
+                <div className="space-y-6">
+                  {profile.location && (
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 text-gray-400 mr-2" />
+                      <span className="text-gray-600">{profile.location}</span>
+                    </div>
+                  )}
+                  
+                  {profile.company_size && (
+                    <div className="flex items-center">
+                      <Users className="w-5 h-5 text-gray-400 mr-2" />
+                      <span className="text-gray-600">{profile.company_size}</span>
+                    </div>
+                  )}
+
+                  {profile.website && (
+                    <div className="flex items-center">
+                      <Globe className="w-5 h-5 text-gray-400 mr-2" />
+                      <a 
+                        href={profile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {profile.website}
+                      </a>
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* Skills */}
-            {profile.skills && profile.skills.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Skills</h2>
-                <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+                {/* Job Listings Section Placeholder */}
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Job Listings</h2>
+                  <button
+                    onClick={() => router.push('/post-job')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Post New Job
+                  </button>
                 </div>
-              </div>
+              </>
             )}
-
-            {/* Interests */}
-            {profile.interests && profile.interests.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Interests</h2>
-                <div className="flex flex-wrap gap-2">
-                  {profile.interests.map((interest, index) => (
-                    <span
-                      key={index}
-                      className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Contact Information */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact</h2>
-              <div className="flex items-center text-gray-600">
-                <div className="mr-6">
-                  <span className="block text-sm text-gray-500">Email</span>
-                  <span>{profile.users?.email || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Footer Section */}
