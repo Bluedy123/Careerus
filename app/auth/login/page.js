@@ -24,7 +24,7 @@ export default function Login() {
       setLoading(true);
       setError(null);
       
-      // Sign in with Supabase auth
+      // Fixed variable name to match the destructured values
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -32,42 +32,26 @@ export default function Login() {
 
       if (signInError) throw signInError;
 
+      // Ensure we have user data before proceeding
+      if (!signInData?.user) {
+        throw new Error('No user data received');
+      }
+
       // Check if user exists in your users table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('user_id', signInData.user.id)
         .single();
-
-      if (userError) {
-        // If user doesn't exist in users table yet, create it
-        const { error: createError } = await supabase
-          .from('users')
-          .insert({
-            user_id: signInData.user.id,
-            email: email,
-            password_hash: 'hashed', // Since auth is handled by Supabase
-            role: 'user', // Default role
-            created_at: new Date().toISOString()
-          });
-
-        if (createError) throw createError;
+  
+      if (userError || !userData) {
+        // If user doesn't exist in users table, sign them out
+        await supabase.auth.signOut();
+        setError('Account not found. Please contact support.');
+        return;
       }
 
-      // Check if user has a profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', signInData.user.id)
-        .single();
-
-      // Redirect based on profile existence
-      if (profileData) {
-        router.push('/profile'); // User has profile, go to profile page
-      } else {
-        router.push('/setup-profile'); // User needs to set up profile
-      }
-
+      router.push('/dashboard'); // Redirect after successful login
       router.refresh();
     } catch (error) {
       setError(error.message);

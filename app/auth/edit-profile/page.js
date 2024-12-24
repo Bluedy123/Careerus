@@ -161,37 +161,30 @@ export default function EditProfile() {
         .delete()
         .eq('user_id', user.id);
   
-      if (userError) throw userError;
-  
-      // 6. Sign out the user
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) throw signOutError;
-  
-      // 7. Delete the Supabase auth user (requires admin key)
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-      if (authError) throw authError;
-  
-      const response = await fetch('/api/delete-user', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to delete user account');
-      }
-  
-      await supabase.auth.signOut();
-      router.push('/login');
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-      setShowDeleteConfirm(false);
-    }
-  };
+        if (userError) throw userError;
 
+        // Call API to delete from Supabase auth
+        const response = await fetch('/api/delete-user', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to delete authentication data');
+        }
+    
+        // Sign out after successful deletion
+        await supabase.auth.signOut();
+        router.push('/login');
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+        setShowDeleteConfirm(false);
+      }
+    };
 
   const toggleSelection = (array, value) => {
     const index = array.indexOf(value);
