@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const studentEducationLevels = [
+const educationLevels = [
   'High School',
   'Some College',
   'Associate Degree',
@@ -13,7 +13,7 @@ const studentEducationLevels = [
   'PhD'
 ];
 
-const studentSkillOptions = [
+const skillOptions = [
   'Programming',
   'Data Analysis',
   'Project Management',
@@ -21,10 +21,10 @@ const studentSkillOptions = [
   'Marketing',
   'Communication',
   'Leadership',
-  'Research',
+  'Research'
 ];
 
-const studentInterestOptions = [
+const interestOptions = [
   'Technology',
   'Healthcare',
   'Finance',
@@ -32,9 +32,10 @@ const studentInterestOptions = [
   'Arts',
   'Science',
   'Business',
-  'Computer',
+  'Computer'
 ];
 
+// Employer Options
 const industryOptions = [
   'Technology',
   'Healthcare',
@@ -56,9 +57,13 @@ const companySizeOptions = [
 
 export default function EditProfile() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Student profile data
   const [studentData, setStudentData] = useState({
     full_name: '',
     bio: '',
@@ -67,6 +72,8 @@ export default function EditProfile() {
     interests: [],
     skills: []
   });
+
+// Employer profile data
   const [employerData, setEmployerData] = useState({
     company_name: '',
     industry: '',
@@ -87,6 +94,7 @@ export default function EditProfile() {
         router.push('/login');
         return;
       }
+      setUser(user);
 
       // Get user role
       const { data: userData, error: userError } = await supabase
@@ -94,11 +102,11 @@ export default function EditProfile() {
         .select('role')
         .eq('user_id', user.id)
         .single();
-
+      
       if (userError) throw userError;
       setUserRole(userData.role);
 
-      // Get profile data based on role
+      // Get profile based on role
       if (userData.role === 'student') {
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
@@ -106,35 +114,49 @@ export default function EditProfile() {
           .eq('user_id', user.id)
           .single();
 
-        if (profileError) throw profileError;
-        setStudentData(profile);
-      } else {
-        const { data: profile, error: profileError } = await supabase
-          .from('employer_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+      if (profileError) throw profileError;
 
-        if (profileError) throw profileError;
-        setEmployerData(profile);
-      }
+      setStudentData({
+        full_name: profile.full_name || '',
+        bio: profile.bio || '',
+        education_level: profile.education_level || '',
+        field_of_study: profile.field_of_study || '',
+        interests: profile.interests || [],
+        skills: profile.skills || []
+      });
+    } else {
+      const { data: profile, error: profileError } = await supabase
+        .from('employer_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-      setLoading(false);
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
+      if (profileError) throw profileError;
+      setEmployerData({
+        company_name: profile.company_name || '',
+        industry: profile.industry || '',
+        company_size: profile.company_size || '',
+        location: profile.location || '',
+        website: profile.website || '',
+        bio: profile.bio || ''
+      });
     }
-  };
+  } catch (error) {
+    setError(error.message);
+  }
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      setError(null);
+
       if (!user) throw new Error('No user found');
 
       if (userRole === 'student') {
-        const { error: updateError } = await supabase
+        const { error: profileError } = await supabase
           .from('user_profiles')
           .update({
             ...studentData,
@@ -142,9 +164,9 @@ export default function EditProfile() {
           })
           .eq('user_id', user.id);
 
-        if (updateError) throw updateError;
+        if (profileError) throw profileError;
       } else {
-        const { error: updateError } = await supabase
+        const { error: profileError } = await supabase
           .from('employer_profiles')
           .update({
             ...employerData,
@@ -152,7 +174,7 @@ export default function EditProfile() {
           })
           .eq('user_id', user.id);
 
-        if (updateError) throw updateError;
+        if (profileError) throw profileError;
       }
 
       router.push('/profile');
@@ -163,28 +185,98 @@ export default function EditProfile() {
     }
   };
 
-  const toggleSelection = (array, value) => {
-    if (array.includes(value)) {
-      return array.filter(item => item !== value);
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+  
+      if (!user) throw new Error('No user found');
+  
+      // Delete based on user role
+      if (userRole === 'student') {
+        // Delete student-related data
+        const { error: preferencesError } = await supabase
+          .from('user_career_preferences')
+          .delete()
+          .eq('user_id', user.id);
+        if (preferencesError) throw preferencesError;
+  
+        const { error: recommendationsError } = await supabase
+          .from('career_recommendations')
+          .delete()
+          .eq('user_id', user.id);
+        if (recommendationsError) throw recommendationsError;
+  
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .delete()
+          .eq('user_id', user.id);
+        if (profileError) throw profileError;
+      } else {
+        // Delete employer-related data
+        // First delete any job listings or applications if they exist
+        const { error: employerProfileError } = await supabase
+          .from('employer_profiles')
+          .delete()
+          .eq('user_id', user.id);
+        if (employerProfileError) throw employerProfileError;
+      }
+  
+      // Finally delete the user record
+      const { error: userError } = await supabase
+        .from('users')
+        .delete()
+        .eq('user_id', user.id);
+  
+      if (userError) throw userError;
+  
+      // Call API to delete from Supabase auth
+      const response = await fetch('/api/delete-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete authentication data');
+      }
+  
+      // Sign out after successful deletion
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Delete error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
     }
-    return [...array, value];
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading profile...</div>
-      </div>
-    );
-  }
+  const toggleSelection = (array, value) => {
+    const index = array.indexOf(value);
+    return index > -1 ? array.filter((_, i) => i !== index) : [...array, value];
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow px-6 py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Edit {userRole === 'student' ? 'Student' : 'Employer'} Profile
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Edit {userRole === 'student' ? 'Student' : 'Employer'} Profile
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-red-600 hover:text-red-700"
+            >
+              Delete Account
+            </button>
+          </div>
 
           {error && (
             <div className="mb-4 bg-red-50 text-red-500 p-3 rounded">
@@ -194,7 +286,7 @@ export default function EditProfile() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {userRole === 'student' ? (
-              // Student Form
+              // Student Form Fields
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -214,10 +306,24 @@ export default function EditProfile() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
+                    Bio
+                  </label>
+                  <textarea
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    rows="3"
+                    value={studentData.bio}
+                    onChange={(e) => setStudentData({
+                      ...studentData,
+                      bio: e.target.value
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
                     Education Level
                   </label>
                   <select
-                    required
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     value={studentData.education_level}
                     onChange={(e) => setStudentData({
@@ -226,7 +332,7 @@ export default function EditProfile() {
                     })}
                   >
                     <option value="">Select education level</option>
-                    {studentEducationLevels.map(level => (
+                    {educationLevels.map(level => (
                       <option key={level} value={level}>{level}</option>
                     ))}
                   </select>
@@ -248,27 +354,11 @@ export default function EditProfile() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Bio
-                  </label>
-                  <textarea
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                    rows="3"
-                    value={studentData.bio}
-                    onChange={(e) => setStudentData({
-                      ...studentData,
-                      bio: e.target.value
-                    })}
-                  />
-                </div>
-
-                {/* Skills */}
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Skills
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {studentSkillOptions.map(skill => (
+                    {skillOptions.map(skill => (
                       <button
                         type="button"
                         key={skill}
@@ -288,13 +378,12 @@ export default function EditProfile() {
                   </div>
                 </div>
 
-                {/* Interests */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Interests
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {studentInterestOptions.map(interest => (
+                    {interestOptions.map(interest => (
                       <button
                         type="button"
                         key={interest}
@@ -315,7 +404,7 @@ export default function EditProfile() {
                 </div>
               </>
             ) : (
-              // Employer Form
+              // Employer Form Fields
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -379,7 +468,6 @@ export default function EditProfile() {
                   </label>
                   <input
                     type="text"
-                    required
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     value={employerData.location}
                     onChange={(e) => setEmployerData({
@@ -391,7 +479,7 @@ export default function EditProfile() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Company Website
+                    Website
                   </label>
                   <input
                     type="url"
@@ -401,7 +489,6 @@ export default function EditProfile() {
                       ...employerData,
                       website: e.target.value
                     })}
-                    placeholder="https://"
                   />
                 </div>
 
@@ -422,25 +509,47 @@ export default function EditProfile() {
               </>
             )}
 
-            <div className="flex space-x-4">
+            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push('/profile')}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Cancel
               </button>
             </div>
           </form>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Delete Account
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete your account? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                {loading ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
