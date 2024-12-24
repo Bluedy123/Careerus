@@ -104,7 +104,7 @@ export default function ProfileView() {
                 </div>
               </div>
               <button
-                onClick={() => router.push('/edit-profile')}
+                onClick={() => router.push('/auth/edit-profile')}
                 className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 flex items-center"
               >
                 <Edit className="w-4 h-4 mr-2" />
