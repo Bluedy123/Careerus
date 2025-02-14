@@ -39,7 +39,7 @@ export default function Home() {
             CAREER SEARCH <span className="text-red-500">LIKE A PRO</span>
           </h2>
           <p className="text-lg text-gray-700 leading-relaxed">
-            Careerus is an innovative career guidance platform designed to help students confidently navigate their career journeys.
+            CareerUS is an innovative career guidance platform designed to help students confidently navigate their career journeys.
           </p>
           <ul className="space-y-3">
             <li className="flex items-center">
