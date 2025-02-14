@@ -1,4 +1,4 @@
-import "./globals.css"; // Ensure Tailwind or custom styles are loaded
+import "./globals.css";
 import Link from "next/link";
 
 export const metadata = {
@@ -11,12 +11,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="bg-gray-100">
         {/* Navbar */}
-        <nav className="bg-black text-white flex items-center justify-between px-10 py-5">
-          <div className="text-3xl font-extrabold">
-            <span className="text-white">CAREER</span>
-            <span className="text-red-500">US</span>
+        <nav className="bg-black text-white flex items-center justify-between px-10 py-5 shadow-lg">
+          <div className="text-4xl font-extrabold tracking-wide uppercase">
+            <span className="text-white">Career</span>
+            <span className="text-red-500">Us</span>
           </div>
-          <div className="hidden md:flex space-x-6">
+          <div className="hidden md:flex space-x-6 text-lg font-medium tracking-wider">
             <NavItem href="/">Home</NavItem>
             <NavItem href="/skill-gap">Skill Gap Checker</NavItem>
             <NavItem href="/recommendations">Recommendations</NavItem>
@@ -37,12 +37,12 @@ export default function RootLayout({ children }) {
         </nav>
 
         {/* Page Content */}
-        <main className="py-10">{children}</main>
+        <main className="m-0 p-0">{children}</main>
 
         {/* Footer */}
         <footer className="bg-black text-gray-400 py-6 text-center">
-          <h2 className="text-white text-xl font-semibold">
-            READY TO FIND <span className="text-red-500">YOUR CAREER?</span>
+          <h2 className="text-white text-xl font-semibold tracking-widest uppercase">
+            Ready to Find <span className="text-red-500">Your Career?</span>
           </h2>
           <div className="flex justify-center space-x-6 mt-3">
             <a href="#" className="hover:text-white">🔗 LinkedIn</a>
