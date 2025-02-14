@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
+import NavItem from "./components/NavItem"; // ✅ Import refined NavItem component
 
 export const metadata = {
   title: "Careerus",
@@ -11,12 +12,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="bg-gray-100">
         {/* Navbar */}
-        <nav className="bg-black text-white flex items-center justify-between px-10 py-5 shadow-lg">
-          <div className="text-4xl font-extrabold tracking-wide uppercase">
+        <nav className="bg-black text-gray-300 flex items-center justify-between px-10 py-5 shadow-lg">
+          {/* ✅ Keep Logo Uppercase and Bold */}
+          <Link href="/" className="text-4xl font-extrabold tracking-wide uppercase hover:opacity-80 transition">
             <span className="text-white">Career</span>
-            <span className="text-red-500">Us</span>
-          </div>
-          <div className="hidden md:flex space-x-6 text-lg font-medium tracking-wider">
+            <span className="text-red-400">Us</span>
+          </Link>
+
+          {/* ✅ Navbar Links - Normal Case (No Uppercase) */}
+          <div className="hidden md:flex flex-grow justify-center gap-x-10 text-base font-medium tracking-normal">
             <NavItem href="/">Home</NavItem>
             <NavItem href="/skill-gap">Skill Gap Checker</NavItem>
             <NavItem href="/recommendations">Recommendations</NavItem>
@@ -26,11 +30,13 @@ export default function RootLayout({ children }) {
             <NavItem href="/help">Help</NavItem>
             <NavItem href="/about">About</NavItem>
           </div>
+
+          {/* ✅ Sign In & Sign Up Buttons - Now Both White Font */}
           <div className="flex space-x-4">
-            <Link href="/auth/login" className="bg-gray-700 px-4 py-2 text-white rounded-md hover:bg-gray-800">
+            <Link href="/auth/login" className="px-4 py-2 text-white bg-gray-700 rounded-md font-medium hover:bg-gray-800 transition">
               Sign In
             </Link>
-            <Link href="/auth/register" className="bg-red-500 px-4 py-2 text-white rounded-md hover:bg-red-600">
+            <Link href="/auth/register" className="px-4 py-2 text-white bg-red-500 rounded-md font-medium hover:bg-red-600 transition">
               Sign Up
             </Link>
           </div>
@@ -41,8 +47,8 @@ export default function RootLayout({ children }) {
 
         {/* Footer */}
         <footer className="bg-black text-gray-400 py-6 text-center">
-          <h2 className="text-white text-xl font-semibold tracking-widest uppercase">
-            Ready to Find <span className="text-red-500">Your Career?</span>
+          <h2 className="text-gray-300 text-lg font-medium tracking-wide uppercase">
+            READY TO FIND <span className="text-red-400">YOUR CAREER?</span>
           </h2>
           <div className="flex justify-center space-x-6 mt-3">
             <a href="#" className="hover:text-white">🔗 LinkedIn</a>
@@ -53,14 +59,5 @@ export default function RootLayout({ children }) {
         </footer>
       </body>
     </html>
-  );
-}
-
-// Navigation Item Component
-function NavItem({ href, children }) {
-  return (
-    <Link href={href} className="text-gray-300 hover:text-white transition">
-      {children}
-    </Link>
   );
 }
