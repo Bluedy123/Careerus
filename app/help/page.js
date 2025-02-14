@@ -18,7 +18,7 @@ export default function Help() {
         <h2 className="text-3xl font-semibold text-gray-900 text-center">Frequently Asked Questions</h2>
         <div className="mt-8 space-y-6">
           <FAQItem question="How do I create an account?" answer="Click on the Sign Up button at the top right and follow the registration steps." />
-          <FAQItem question="How does CareerUS recommend careers?" answer="We use AI-driven insights based on your skills, interests, and job market trends." />
+          <FAQItem question="How does CareerUS recommend careers?" answer="We use data-driven insights based on your skills, interests, and job market trends." />
           <FAQItem question="Is CareerUS free to use?" answer="Yes! CareerUS provides free career insights, with optional premium features coming soon." />
           <FAQItem question="Can I update my career preferences?" answer="Yes, you can edit your preferences anytime in your profile settings." />
         </div>
