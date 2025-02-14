@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export default function Trends() {
   const [loading, setLoading] = useState(false);
   const [trends, setTrends] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("software");
+  const [searchQuery, setSearchQuery] = useState("technology");
   const [chartData, setChartData] = useState([]);
   const [salaryData, setSalaryData] = useState([]);
 
@@ -23,21 +22,19 @@ export default function Trends() {
 
       const response = await fetch(
         `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=10&what=${query}`,
-        {
-          method: "GET",
-        }
+        { method: "GET" }
       );
 
       if (!response.ok) throw new Error("Failed to fetch job trends");
       const data = await response.json();
       setTrends(data.results || []);
 
-      // Extract data for visualization
+      // Extract job demand & salary data
       const jobCounts = {};
       const salaryStats = [];
 
       data.results.forEach((job) => {
-        const title = job.title.split(" ")[0]; // Extract first word of job title
+        const title = job.title;
         jobCounts[title] = (jobCounts[title] || 0) + 1;
 
         if (job.salary_min && job.salary_max) {
@@ -56,7 +53,6 @@ export default function Trends() {
       );
 
       setSalaryData(salaryStats);
-
     } catch (error) {
       console.error("Error fetching job trends:", error);
     } finally {
@@ -72,98 +68,148 @@ export default function Trends() {
           Job Market <span className="text-red-400">Trends</span>
         </h1>
         <p className="text-lg text-gray-300 mt-2">
-          Visualize industry demand and salary trends.
+          Stay updated with real-time industry insights.
         </p>
       </header>
 
       {/* Search Bar */}
-      <div className="max-w-4xl mx-auto mt-8 p-4">
-        <input
-          type="text"
-          placeholder="Search job trends (e.g. Software Engineer, Marketing)"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-4 border border-gray-300 rounded-md shadow-sm text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <button
-          onClick={() => fetchTrends(searchQuery)}
-          className="mt-4 w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition"
-        >
-          Search Trends
-        </button>
-      </div>
-
-      {/* Trends Visualization */}
-      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-10 mt-8 space-y-6">
-        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Job Trends Overview</h2>
-
-        {/* Job Demand Chart */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Job Demand by Title</h3>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="job" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#3182CE" barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-gray-500 text-center">No data available</p>
-          )}
-        </div>
-
-        {/* Salary Trends Chart */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Average Salaries</h3>
-          {salaryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salaryData}>
-                <XAxis dataKey="title" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="salary" stroke="#E53E3E" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-gray-500 text-center">No salary data available</p>
-          )}
+      <div className="max-w-5xl mx-auto mt-8 p-6 bg-white rounded-xl shadow-md">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Search Job Trends</h2>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder="Search jobs (e.g. Software Engineer, Marketing)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-grow p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => fetchTrends(searchQuery)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+          >
+            Search
+          </button>
         </div>
       </div>
 
-      {/* Job Listings */}
-      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-10 mt-8 space-y-6">
-        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Latest Job Market Trends</h2>
+      {/* Side-by-Side Layout */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10 p-6">
+        {/* LEFT: Trends Data */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-6">Job Demand & Salary Insights</h2>
 
-        {loading && (
-          <div className="text-center text-gray-600">
-            <p>Loading job trends...</p>
+          {/* Job Demand Chart */}
+          <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Most In-Demand Job Titles</h3>
+            <ResponsiveContainer width="100%" height={350}>
+  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+    {/* X-Axis with Improved Font */}
+    <XAxis 
+      dataKey="job" 
+      tickFormatter={(label) => (label.length > 12 ? label.slice(0, 12) + "..." : label)}
+      tick={{ fontSize: 14, fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
+    />
+    
+    {/* Y-Axis with Improved Font */}
+    <YAxis 
+      tick={{ fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
+    />
+
+    {/* Tooltip with Modern Font */}
+    <Tooltip 
+      contentStyle={{ 
+        backgroundColor: "#fff", 
+        color: "#000", 
+        fontFamily: "Inter, Poppins, sans-serif", 
+        fontSize: "14px", 
+        fontWeight: 500 
+      }} 
+      itemStyle={{ color: "#000" }} 
+    />
+
+    {/* Bar with Gradient Fill */}
+    <Bar dataKey="count" fill="url(#barGradient)" barSize={50} radius={[10, 10, 0, 0]} />
+    
+    {/* Gradient Definition */}
+    <defs>
+      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#1E40AF" stopOpacity={0.9} /> 
+        <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.6} /> 
+      </linearGradient>
+    </defs>
+  </BarChart>
+</ResponsiveContainer>
+
+
           </div>
-        )}
 
-        {!loading && trends.length === 0 && (
-          <p className="text-gray-500 text-center">No trends available. Try a different search.</p>
-        )}
+          {/* Salary Trends Chart */}
+          <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Average Salaries for Job Roles</h3>
+            <ResponsiveContainer width="100%" height={350}>
+  <LineChart data={salaryData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+    {/* X-Axis with Improved Font */}
+    <XAxis 
+      dataKey="title" 
+      tickFormatter={(label) => (label.length > 12 ? label.slice(0, 12) + "..." : label)}
+      tick={{ fontSize: 14, fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
+    />
+    
+    {/* Y-Axis with Improved Font */}
+    <YAxis 
+      tick={{ fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
+    />
 
-        <div className="space-y-6">
-          {trends.map((trend, index) => (
-            <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <h3 className="text-xl font-bold text-gray-900">{trend.title}</h3>
-              <p className="text-gray-700 mt-2">{trend.company.display_name}</p>
-              <p className="text-gray-500">
-                {trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}
-              </p>
-              <a
-                href={trend.redirect_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block mt-3 text-blue-600 font-semibold hover:underline"
-              >
-                View More
-              </a>
-            </div>
-          ))}
+    {/* Tooltip with Modern Font */}
+    <Tooltip 
+      contentStyle={{ 
+        backgroundColor: "#fff", 
+        color: "#000", 
+        fontFamily: "Inter, Poppins, sans-serif", 
+        fontSize: "14px", 
+        fontWeight: 500 
+      }} 
+      itemStyle={{ color: "#000" }} 
+    />
+
+    <Line 
+      type="monotone" 
+      dataKey="salary" 
+      stroke="#E53E3E" 
+      strokeWidth={3} 
+      dot={{ r: 5, fill: "#E53E3E" }} 
+      activeDot={{ r: 8 }} 
+    />
+  </LineChart>
+</ResponsiveContainer>
+
+          </div>
+        </div>
+
+        {/* RIGHT: Job Listings */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-6">Latest Job Openings</h2>
+
+          {loading && <p className="text-gray-500 text-center">Loading job trends...</p>}
+
+          {!loading && trends.length === 0 && (
+            <p className="text-gray-500 text-center">No trends available. Try a different search.</p>
+          )}
+
+          <div className="space-y-6">
+            {trends.map((trend, index) => (
+              <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold text-gray-900">{trend.title}</h3>
+                <p className="text-gray-700 mt-2">{trend.company.display_name}</p>
+                <p className="text-gray-500">
+                  {trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}
+                </p>
+                <a href={trend.redirect_url} target="_blank" rel="noopener noreferrer" className="block mt-3 text-blue-600 font-semibold hover:underline">
+                  View More
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
