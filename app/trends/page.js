@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export default function Trends() {
   const [loading, setLoading] = useState(false);
   const [trends, setTrends] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("software");
+  const [chartData, setChartData] = useState([]);
+  const [salaryData, setSalaryData] = useState([]);
 
   useEffect(() => {
-    fetchTrends();
+    fetchTrends(searchQuery);
   }, []);
 
   const fetchTrends = async (query = "technology") => {
@@ -27,6 +31,32 @@ export default function Trends() {
       if (!response.ok) throw new Error("Failed to fetch job trends");
       const data = await response.json();
       setTrends(data.results || []);
+
+      // Extract data for visualization
+      const jobCounts = {};
+      const salaryStats = [];
+
+      data.results.forEach((job) => {
+        const title = job.title.split(" ")[0]; // Extract first word of job title
+        jobCounts[title] = (jobCounts[title] || 0) + 1;
+
+        if (job.salary_min && job.salary_max) {
+          salaryStats.push({
+            title,
+            salary: (job.salary_min + job.salary_max) / 2,
+          });
+        }
+      });
+
+      setChartData(
+        Object.keys(jobCounts).map((title) => ({
+          job: title,
+          count: jobCounts[title],
+        }))
+      );
+
+      setSalaryData(salaryStats);
+
     } catch (error) {
       console.error("Error fetching job trends:", error);
     } finally {
@@ -42,7 +72,7 @@ export default function Trends() {
           Job Market <span className="text-red-400">Trends</span>
         </h1>
         <p className="text-lg text-gray-300 mt-2">
-          Stay updated with real-time industry insights.
+          Visualize industry demand and salary trends.
         </p>
       </header>
 
@@ -63,7 +93,46 @@ export default function Trends() {
         </button>
       </div>
 
-      {/* Trends List */}
+      {/* Trends Visualization */}
+      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-10 mt-8 space-y-6">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Job Trends Overview</h2>
+
+        {/* Job Demand Chart */}
+        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Job Demand by Title</h3>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <XAxis dataKey="job" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3182CE" barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-500 text-center">No data available</p>
+          )}
+        </div>
+
+        {/* Salary Trends Chart */}
+        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Average Salaries</h3>
+          {salaryData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={salaryData}>
+                <XAxis dataKey="title" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="salary" stroke="#E53E3E" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-500 text-center">No salary data available</p>
+          )}
+        </div>
+      </div>
+
+      {/* Job Listings */}
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-10 mt-8 space-y-6">
         <h2 className="text-3xl font-semibold text-gray-900 mb-4">Latest Job Market Trends</h2>
 
