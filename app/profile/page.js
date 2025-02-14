@@ -92,6 +92,9 @@ export default function Profile() {
         <h1 className="text-5xl font-extrabold uppercase tracking-wide">
           My <span className="text-red-400">Profile</span>
         </h1>
+        <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
+        Showcase your skills and career journey.
+        </p>
       </header>
 
       {/* Content Wrapper */}
