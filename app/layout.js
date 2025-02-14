@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.push('/login');
+      router.push('/auth/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -65,11 +65,8 @@ export default function RootLayout({ children }) {
               <button
                 onClick={handleSignOut}
                 className="px-4 py-2 text-white bg-red-500 rounded-md font-medium hover:bg-red-600 transition"
-              >
-                <Link href="/explore" className="px-4 py-2 text-white bg-gray-700 rounded-md font-medium hover:bg-gray-800 transition">
-
+              >                
                 Sign Out
-                </Link>
               </button>
             ) : (
               // Show sign in/up when not logged in
