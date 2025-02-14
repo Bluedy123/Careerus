@@ -49,7 +49,7 @@ export default function RootLayout({ children }) {
 
           <div className="hidden md:flex flex-grow justify-center gap-x-10 text-base font-medium tracking-normal">
             <NavItem href="/">Home</NavItem>
-            <NavItem href="/skill-gap">Skill Gap Checker</NavItem>
+            <NavItem href="/skillgap">Skill Gap Checker</NavItem>
             <NavItem href="/recommendations">Recommendations</NavItem>
             <NavItem href="/trends">Trends</NavItem>
             <NavItem href="/feedback">Feedback</NavItem>
