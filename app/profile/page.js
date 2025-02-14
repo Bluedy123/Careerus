@@ -233,7 +233,7 @@ export default function Profile() {
           <div className="bg-white p-8 rounded-lg shadow-lg text-center w-96 z-30">
             <h2 className="text-2xl font-bold text-gray-900">Sign In Required</h2>
             <p className="text-gray-600 mt-2">Please sign in to view your profile.</p>
-            <Link href="/login">
+            <Link href="/auth/login">
               <button className="mt-4 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold uppercase tracking-wider hover:bg-red-600 transition">
                 Sign In
               </button>
