@@ -246,7 +246,7 @@ export default function EditProfile() {
   
       // Sign out after successful deletion
       await supabase.auth.signOut();
-      router.push('/login');
+      router.push('/auth/login');
     } catch (error) {
       console.error('Delete error:', error);
       setError(error.message);
