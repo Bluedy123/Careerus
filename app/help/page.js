@@ -15,29 +15,55 @@ export default function Help() {
 
       {/* FAQ Section */}
       <section className="max-w-6xl mx-auto py-16 px-6">
-        <h2 className="text-3xl font-semibold text-gray-900 text-center">Frequently Asked Questions</h2>
+        <h2 className="text-3xl font-semibold text-gray-900 text-center">
+          Frequently Asked Questions
+        </h2>
         <div className="mt-8 space-y-6">
-          <FAQItem question="How do I create an account?" answer="Click on the Sign Up button at the top right and follow the registration steps." />
-          <FAQItem question="How does CareerUS recommend careers?" answer="We use data-driven insights based on your skills, interests, and job market trends." />
-          <FAQItem question="Is CareerUS free to use?" answer="Yes! CareerUS provides free career insights, with optional premium features coming soon." />
-          <FAQItem question="Can I update my career preferences?" answer="Yes, you can edit your preferences anytime in your profile settings." />
+          <FAQItem
+            question="How do I create an account?"
+            answer="Click on the Sign Up button at the top right and follow the registration steps."
+          />
+          <FAQItem
+            question="How does CareerUS recommend careers?"
+            answer="We use data-driven insights based on your skills, interests, and job market trends."
+          />
+          <FAQItem
+            question="Is CareerUS free to use?"
+            answer="Yes! CareerUS provides free career insights, with optional premium features coming soon."
+          />
+          <FAQItem
+            question="Can I update my career preferences?"
+            answer="Yes, you can edit your preferences anytime in your profile settings."
+          />
         </div>
       </section>
 
       {/* Contact Support Section */}
       <section className="bg-white py-16 px-6 text-center">
-        <h2 className="text-3xl font-semibold text-gray-900">Need More Help?</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">
+          Need More Help?
+        </h2>
         <p className="text-lg text-gray-700 mt-4">
-          If you have any other questions or need assistance, feel free to contact us.
+          If you have any other questions or need assistance, feel free to
+          contact us.
         </p>
-        <p className="text-lg text-gray-700 mt-2">Email us at: 
-          <a href="mailto:support@careerus.com" className="text-red-500 font-semibold hover:underline"> support@careerus.com</a>
+        <p className="text-lg text-gray-700 mt-2">
+          Email us at:
+          <a
+            href="mailto:support@careerus.com"
+            className="text-red-500 font-semibold hover:underline"
+          >
+            {" "}
+            support@careerus.com
+          </a>
         </p>
       </section>
 
       {/* Call to Action */}
       <section className="text-center py-16">
-        <h2 className="text-3xl font-semibold text-gray-900">Explore CareerUS</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">
+          Explore CareerUS
+        </h2>
         <p className="text-lg text-gray-700 mt-4">
           Start exploring your career path with data-driven insights.
         </p>
