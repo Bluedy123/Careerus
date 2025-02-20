@@ -24,23 +24,29 @@ export default function Feedback() {
           Employer <span className="text-red-400">Feedback</span>
         </h1>
         <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
-          Provide feedback on student profiles to help improve their employability.
+          Provide feedback on student profiles to help improve their
+          employability.
         </p>
       </header>
 
       {/* Why Feedback Matters Section */}
       <section className="max-w-6xl mx-auto py-16 px-6 text-center">
-        <h2 className="text-3xl font-semibold text-gray-900">Why Employer Feedback Matters</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">
+          Why Employer Feedback Matters
+        </h2>
         <p className="text-lg text-gray-700 mt-4 leading-relaxed">
-          Your insights help students develop the skills they need to succeed in the workforce.  
-          By providing feedback, you help students improve their employability and career readiness.
+          Your insights help students develop the skills they need to succeed in
+          the workforce. By providing feedback, you help students improve their
+          employability and career readiness.
         </p>
       </section>
 
       {/* Feedback Form */}
       <section className="bg-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-semibold text-gray-900">Submit Feedback on a Student</h2>
+          <h2 className="text-3xl font-semibold text-gray-900">
+            Submit Feedback on a Student
+          </h2>
           <p className="text-lg text-gray-700 mt-4">
             Provide constructive feedback to help students improve.
           </p>
@@ -72,11 +78,15 @@ export default function Feedback() {
       {/* Display Submitted Feedback */}
       {submittedFeedback.length > 0 && (
         <section className="max-w-6xl mx-auto py-16 px-6">
-          <h2 className="text-3xl font-semibold text-gray-900 text-center">Recent Employer Feedback</h2>
+          <h2 className="text-3xl font-semibold text-gray-900 text-center">
+            Recent Employer Feedback
+          </h2>
           <div className="mt-8 space-y-6">
             {submittedFeedback.map((entry, index) => (
               <div key={index} className="bg-gray-200 p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-bold text-gray-800">Feedback on {entry.studentName}</h3>
+                <h3 className="text-lg font-bold text-gray-800">
+                  Feedback on {entry.studentName}
+                </h3>
                 <p className="text-gray-800 mt-2 italic">"{entry.feedback}"</p>
               </div>
             ))}
@@ -86,7 +96,9 @@ export default function Feedback() {
 
       {/* Call to Action */}
       <section className="text-center py-16">
-        <h2 className="text-3xl font-semibold text-gray-900">Help Students Succeed</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">
+          Help Students Succeed
+        </h2>
         <p className="text-lg text-gray-700 mt-4">
           Your feedback helps students prepare for the real-world job market.
         </p>
