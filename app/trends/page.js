@@ -7,24 +7,24 @@ export default function Trends() {
   const [loading, setLoading] = useState(false);
   const [trends, setTrends] = useState([]);
   const [searchQuery, setSearchQuery] = useState("technology");
+  const [location, setLocation] = useState("");
   const [chartData, setChartData] = useState([]);
   const [salaryData, setSalaryData] = useState([]);
 
   useEffect(() => {
-    fetchTrends(searchQuery);
+    fetchTrends(searchQuery, location);
   }, []);
 
-  const fetchTrends = async (query = "technology") => {
+  const fetchTrends = async (query = "technology", loc = "") => {
     setLoading(true);
     try {
       const appId = process.env.NEXT_PUBLIC_ADZUNA_APP_ID;
       const appKey = process.env.NEXT_PUBLIC_ADZUNA_APP_KEY;
-
-      const response = await fetch(
-        `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=10&what=${query}`,
-        { method: "GET" }
-      );
-
+      
+      const locationParam = loc ? `&where=${encodeURIComponent(loc)}` : "";
+      const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=10&what=${query}${locationParam}`;
+      
+      const response = await fetch(url, { method: "GET" });
       if (!response.ok) throw new Error("Failed to fetch job trends");
       const data = await response.json();
       setTrends(data.results || []);
@@ -78,13 +78,20 @@ export default function Trends() {
         <div className="flex gap-3">
           <input
             type="text"
-            placeholder="Search jobs (e.g. Software Engineer, Marketing)"
+            placeholder="Job title (e.g. Software Engineer)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-grow p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
           />
+          <input
+            type="text"
+            placeholder="Location (e.g. New York, CA)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="flex-grow p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
+          />
           <button
-            onClick={() => fetchTrends(searchQuery)}
+            onClick={() => fetchTrends(searchQuery, location)}
             className="bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition"
           >
             Search
@@ -92,121 +99,46 @@ export default function Trends() {
         </div>
       </div>
 
-      {/* Side-by-Side Layout */}
+      {/* Charts & Job Listings */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10 p-6">
-        {/* LEFT: Trends Data */}
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-3xl font-semibold text-gray-900 mb-6">Job Demand & Salary Insights</h2>
-
-          {/* Job Demand Chart */}
           <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Most In-Demand Job Titles</h3>
             <ResponsiveContainer width="100%" height={350}>
-  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-    {/* X-Axis with Improved Font */}
-    <XAxis 
-      dataKey="job" 
-      tickFormatter={(label) => (label.length > 12 ? label.slice(0, 12) + "..." : label)}
-      tick={{ fontSize: 14, fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
-    />
-    
-    {/* Y-Axis with Improved Font */}
-    <YAxis 
-      tick={{ fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
-    />
-
-    {/* Tooltip with Modern Font */}
-    <Tooltip 
-      contentStyle={{ 
-        backgroundColor: "#fff", 
-        color: "#000", 
-        fontFamily: "Inter, Poppins, sans-serif", 
-        fontSize: "14px", 
-        fontWeight: 500 
-      }} 
-      itemStyle={{ color: "#000" }} 
-    />
-
-    {/* Bar with Gradient Fill */}
-    <Bar dataKey="count" fill="url(#barGradient)" barSize={50} radius={[10, 10, 0, 0]} />
-    
-    {/* Gradient Definition */}
-    <defs>
-      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#1E40AF" stopOpacity={0.9} /> 
-        <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.6} /> 
-      </linearGradient>
-    </defs>
-  </BarChart>
-</ResponsiveContainer>
-
-
+              <BarChart data={chartData}>
+                <XAxis dataKey="job" tick={{ fill: "#000" }} />
+                <YAxis tick={{ fill: "#000" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#000", color: "#fff", fontSize: "14px", fontWeight: "500" }} />
+                <Bar dataKey="count" fill="#1E40AF" barSize={50} radius={[10, 10, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-
-          {/* Salary Trends Chart */}
           <div className="bg-gray-50 p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Average Salaries for Job Roles</h3>
             <ResponsiveContainer width="100%" height={350}>
-  <LineChart data={salaryData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-    {/* X-Axis with Improved Font */}
-    <XAxis 
-      dataKey="title" 
-      tickFormatter={(label) => (label.length > 12 ? label.slice(0, 12) + "..." : label)}
-      tick={{ fontSize: 14, fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
-    />
-    
-    {/* Y-Axis with Improved Font */}
-    <YAxis 
-      tick={{ fill: "#000", fontFamily: "Inter, Poppins, sans-serif", fontWeight: 500 }} 
-    />
-
-    {/* Tooltip with Modern Font */}
-    <Tooltip 
-      contentStyle={{ 
-        backgroundColor: "#fff", 
-        color: "#000", 
-        fontFamily: "Inter, Poppins, sans-serif", 
-        fontSize: "14px", 
-        fontWeight: 500 
-      }} 
-      itemStyle={{ color: "#000" }} 
-    />
-
-    <Line 
-      type="monotone" 
-      dataKey="salary" 
-      stroke="#E53E3E" 
-      strokeWidth={3} 
-      dot={{ r: 5, fill: "#E53E3E" }} 
-      activeDot={{ r: 8 }} 
-    />
-  </LineChart>
-</ResponsiveContainer>
-
+              <LineChart data={salaryData}>
+                <XAxis dataKey="title" tick={{ fill: "#000" }} />
+                <YAxis tick={{ fill: "#000" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#000", color: "#fff", fontSize: "14px", fontWeight: "500" }} />
+                <Line type="monotone" dataKey="salary" stroke="#E53E3E" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
-
-        {/* RIGHT: Job Listings */}
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-3xl font-semibold text-gray-900 mb-6">Latest Job Openings</h2>
-
           {loading && <p className="text-gray-500 text-center">Loading job trends...</p>}
-
           {!loading && trends.length === 0 && (
-            <p className="text-gray-500 text-center">No trends available. Try a different search.</p>
+            <p className="text-gray-500 text-center">No results found. Try a different search.</p>
           )}
-
           <div className="space-y-6">
             {trends.map((trend, index) => (
               <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold text-gray-900">{trend.title}</h3>
                 <p className="text-gray-700 mt-2">{trend.company.display_name}</p>
-                <p className="text-gray-500">
-                  {trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}
-                </p>
-                <a href={trend.redirect_url} target="_blank" rel="noopener noreferrer" className="block mt-3 text-blue-600 font-semibold hover:underline">
-                  View More
-                </a>
+                <p className="text-gray-500">{trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}</p>
+                <a href={trend.redirect_url} target="_blank" rel="noopener noreferrer" className="block mt-3 text-blue-600 font-semibold hover:underline">View More</a>
               </div>
             ))}
           </div>
