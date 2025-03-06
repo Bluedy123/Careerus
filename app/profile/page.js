@@ -161,7 +161,10 @@ export default function Profile() {
               <SidebarLink title="Profile Overview" />
               {userRole === "student" ? (
                 <>
-                  <SidebarLink title="Skills" />
+                  {/* Wrap the Skills tab with a Link */}
+                  <Link href="/skills">
+                    <SidebarLink title="Skills" />
+                  </Link>
                   <SidebarLink title="Career Preferences" />
                   <SidebarLink title="Saved Recommendations" />
                 </>
