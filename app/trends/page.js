@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export default function Trends() {
@@ -8,8 +8,8 @@ export default function Trends() {
   const [trends, setTrends] = useState([]);
   const [searchQuery, setSearchQuery] = useState("technology");
   const [location, setLocation] = useState("");
-  const [chartData, setChartData] = useState([]);
-  const [salaryData, setSalaryData] = useState([]);
+  const [minSalary, setMinSalary] = useState("");
+  const [maxSalary, setMaxSalary] = useState("");
 
   useEffect(() => {
     fetchTrends(searchQuery, location);
@@ -28,37 +28,48 @@ export default function Trends() {
       if (!response.ok) throw new Error("Failed to fetch job trends");
       const data = await response.json();
       setTrends(data.results || []);
-
-      // Extract job demand & salary data
-      const jobCounts = {};
-      const salaryStats = [];
-
-      data.results.forEach((job) => {
-        const title = job.title;
-        jobCounts[title] = (jobCounts[title] || 0) + 1;
-
-        if (job.salary_min && job.salary_max) {
-          salaryStats.push({
-            title,
-            salary: (job.salary_min + job.salary_max) / 2,
-          });
-        }
-      });
-
-      setChartData(
-        Object.keys(jobCounts).map((title) => ({
-          job: title,
-          count: jobCounts[title],
-        }))
-      );
-
-      setSalaryData(salaryStats);
     } catch (error) {
       console.error("Error fetching job trends:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter trends based on the average salary criteria
+  const filteredTrends = useMemo(() => {
+    if (!minSalary && !maxSalary) return trends;
+    return trends.filter(job => {
+      if (job.salary_min && job.salary_max) {
+        const avgSalary = (job.salary_min + job.salary_max) / 2;
+        if (minSalary && avgSalary < parseFloat(minSalary)) return false;
+        if (maxSalary && avgSalary > parseFloat(maxSalary)) return false;
+        return true;
+      }
+      return false;
+    });
+  }, [trends, minSalary, maxSalary]);
+
+  // Recalculate chart data based on filtered trends
+  const filteredChartData = useMemo(() => {
+    const jobCounts = {};
+    filteredTrends.forEach(job => {
+      const title = job.title;
+      jobCounts[title] = (jobCounts[title] || 0) + 1;
+    });
+    return Object.keys(jobCounts).map(title => ({
+      job: title,
+      count: jobCounts[title]
+    }));
+  }, [filteredTrends]);
+
+  const filteredSalaryData = useMemo(() => {
+    return filteredTrends
+      .filter(job => job.salary_min && job.salary_max)
+      .map(job => ({
+        title: job.title,
+        salary: (job.salary_min + job.salary_max) / 2
+      }));
+  }, [filteredTrends]);
 
   return (
     <div className="relative bg-gray-100 min-h-screen">
@@ -72,10 +83,10 @@ export default function Trends() {
         </p>
       </header>
 
-      {/* Search Bar */}
+      {/* Search & Salary Filter Bar */}
       <div className="max-w-5xl mx-auto mt-8 p-6 bg-white rounded-xl shadow-md">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Search Job Trends</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <input
             type="text"
             placeholder="Job title (e.g. Software Engineer)"
@@ -89,6 +100,20 @@ export default function Trends() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className="flex-grow p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="number"
+            placeholder="Min Salary"
+            value={minSalary}
+            onChange={(e) => setMinSalary(e.target.value)}
+            className="w-40 p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="number"
+            placeholder="Max Salary"
+            value={maxSalary}
+            onChange={(e) => setMaxSalary(e.target.value)}
+            className="w-40 p-4 border border-gray-300 rounded-md text-black focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={() => fetchTrends(searchQuery, location)}
@@ -106,7 +131,7 @@ export default function Trends() {
           <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Most In-Demand Job Titles</h3>
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartData}>
+              <BarChart data={filteredChartData}>
                 <XAxis dataKey="job" tick={{ fill: "#000" }} />
                 <YAxis tick={{ fill: "#000" }} />
                 <Tooltip contentStyle={{ backgroundColor: "#000", color: "#fff", fontSize: "14px", fontWeight: "500" }} />
@@ -117,7 +142,7 @@ export default function Trends() {
           <div className="bg-gray-50 p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Average Salaries for Job Roles</h3>
             <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={salaryData}>
+              <LineChart data={filteredSalaryData}>
                 <XAxis dataKey="title" tick={{ fill: "#000" }} />
                 <YAxis tick={{ fill: "#000" }} />
                 <Tooltip contentStyle={{ backgroundColor: "#000", color: "#fff", fontSize: "14px", fontWeight: "500" }} />
@@ -129,16 +154,20 @@ export default function Trends() {
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-3xl font-semibold text-gray-900 mb-6">Latest Job Openings</h2>
           {loading && <p className="text-gray-500 text-center">Loading job trends...</p>}
-          {!loading && trends.length === 0 && (
-            <p className="text-gray-500 text-center">No results found. Try a different search.</p>
+          {!loading && filteredTrends.length === 0 && (
+            <p className="text-gray-500 text-center">No results found. Try a different search or adjust salary filters.</p>
           )}
           <div className="space-y-6">
-            {trends.map((trend, index) => (
+            {filteredTrends.map((trend, index) => (
               <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold text-gray-900">{trend.title}</h3>
                 <p className="text-gray-700 mt-2">{trend.company.display_name}</p>
-                <p className="text-gray-500">{trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}</p>
-                <a href={trend.redirect_url} target="_blank" rel="noopener noreferrer" className="block mt-3 text-blue-600 font-semibold hover:underline">View More</a>
+                <p className="text-gray-500">
+                  {trend.location.display_name} • ${trend.salary_min || "N/A"} - ${trend.salary_max || "N/A"}
+                </p>
+                <a href={trend.redirect_url} target="_blank" rel="noopener noreferrer" className="block mt-3 text-blue-600 font-semibold hover:underline">
+                  View More
+                </a>
               </div>
             ))}
           </div>
