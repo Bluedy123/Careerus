@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef  } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,11 +8,14 @@ import { supabase } from "@/lib/supabase";
 
 export default function Profile() {
   const router = useRouter();
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const [profileImage, setProfileImage] = useState("/profile-placeholder.jpg");
 
   useEffect(() => {
     fetchProfile();
@@ -51,6 +54,11 @@ export default function Profile() {
 
         if (profileError) throw profileError;
         setProfileData(profile);
+          
+        // Check if profile has an image
+        if (profile.profile_image_url) {
+          setProfileImage(profile.profile_image_url);
+        }
       } else {
         const { data: profile, error: profileError } = await supabase
           .from("employer_profiles")
@@ -60,12 +68,76 @@ export default function Profile() {
 
         if (profileError) throw profileError;
         setProfileData(profile);
+        
+        // Check if profile has an image
+        if (profile.profile_image_url) {
+          setProfileImage(profile.profile_image_url);
+        }
       }
     } catch (error) {
       setError(error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = async (event) => {
+    try {
+      setUploadingImage(true);
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Please upload an image file');
+      }
+
+      // Check file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error('Image size should be less than 2MB');
+      }
+
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload image to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile_images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile_images')
+        .getPublicUrl(filePath);
+
+      // Update profile with image URL
+      const profileTable = userRole === 'student' ? 'user_profiles' : 'employer_profiles';
+      const { error: updateError } = await supabase
+        .from(profileTable)
+        .update({ 
+          profile_image_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Update UI
+      setProfileImage(publicUrl);
+      
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   const handleLogout = async () => {
@@ -104,15 +176,39 @@ export default function Profile() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row py-10 px-6">
           {/* Sidebar */}
           <aside className="md:w-1/3 bg-white shadow-lg rounded-lg p-6">
-            {/* Profile Image */}
+            {/* Profile Image with Upload Feature */}
             <div className="text-center">
-              <Image
-                src="/profile-placeholder.jpg"
-                alt="Profile Picture"
-                width={100}
-                height={100}
-                className="rounded-full mx-auto"
-              />
+              <div className="relative inline-block">
+                <Image
+                  src={profileImage}
+                  alt="Profile Picture"
+                  width={100}
+                  height={100}
+                  className="rounded-full object-cover w-24 h-24 mx-auto"
+                />
+                {uploadingImage ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={triggerFileInput}
+                    className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 hover:bg-blue-700"
+                    aria-label="Upload profile picture"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  accept="image/*"
+                />
+              </div>
               <h2 className="text-2xl font-bold mt-4">
                 {userRole === "student"
                   ? profileData?.full_name
