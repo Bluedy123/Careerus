@@ -158,7 +158,7 @@ export default function Profile() {
 
             {/* Sidebar Links */}
             <div className="mt-6 space-y-4">
-              <SidebarLink title="Profile Overview" />
+              
               {userRole === "student" ? (
                 <>
                   {/* Wrap the Skills tab with a Link */}
