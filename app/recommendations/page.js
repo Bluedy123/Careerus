@@ -4,6 +4,28 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from '@/lib/supabase';
 
+// Mock data to be used when API call fails
+const mockRecommendations = [
+  {
+    job_title: "Software Developer",
+    employer_name: "Tech Solutions Inc.",
+    job_city: "San Francisco",
+    job_country: "USA",
+    job_min_salary: 80000,
+    job_max_salary: 120000,
+    job_apply_link: "#"
+  },
+  {
+    job_title: "Data Analyst",
+    employer_name: "Data Insights Co.",
+    job_city: "New York",
+    job_country: "USA",
+    job_min_salary: 75000,
+    job_max_salary: 95000,
+    job_apply_link: "#"
+  }
+];
+
 export default function Recommendations() {
   const API_KEY = "28861c5339msh90e89ca9d340422p1e26b3jsn5059155d06a0"; 
   const router = useRouter();
@@ -77,7 +99,8 @@ export default function Recommendations() {
           setRecommendations(data.data || []);
         } catch (error) {
           console.error("Error fetching recommendations:", error);
-          setError(error.message);
+          setError("API limit reached. Showing sample data instead.");
+          setRecommendations(mockRecommendations);
         } finally {
           setLoading(false);
         }
