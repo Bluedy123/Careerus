@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+<<<<<<< Updated upstream
 import { supabase } from "@/lib/supabase";
+=======
+import { supabase } from '@/lib/supabase';
+>>>>>>> Stashed changes
 
 export default function Recommendations() {
     const API_KEY = "28861c5339msh90e89ca9d340422p1e26b3jsn5059155d06a0";
@@ -50,8 +54,15 @@ export default function Recommendations() {
                 setSavedCareers(savedData.saved_careers || []);
             }
         } catch (error) {
+<<<<<<< Updated upstream
             console.error("Error checking auth:", error);
             setError(error.message);
+=======
+          console.error("Error fetching recommendations:", error);
+          setError(error.message);
+        } finally {
+          setLoading(false);
+>>>>>>> Stashed changes
         }
     };
 

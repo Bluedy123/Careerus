@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function Profile() {
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+>>>>>>> Stashed changes
     const router = useRouter();
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -17,11 +21,261 @@ export default function Profile() {
     const [profileData, setProfileData] = useState(null);
     const [profileImage, setProfileImage] = useState(
         "/profile-placeholder.jpg",
+<<<<<<< Updated upstream
+=======
+    );
+=======
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return; // Let the UI handle the not logged in state
+      }
+
+      setUser(user);
+
+      // Get user role
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (userError) throw userError;
+      setUserRole(userData.role);
+
+      // Get profile based on role
+      if (userData.role === "student") {
+        const { data: profile, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+<<<<<<< HEAD
+                if (profileError) throw profileError;
+                setProfileData(profile);
+
+                // Check if profile has an image
+                if (profile.profile_image_url) {
+                    setProfileImage(profile.profile_image_url);
+                }
+            } else {
+                const { data: profile, error: profileError } = await supabase
+                    .from("employer_profiles")
+                    .select("*")
+                    .eq("user_id", user.id)
+                    .single();
+
+                if (profileError) throw profileError;
+                setProfileData(profile);
+
+                // Check if profile has an image
+                if (profile.profile_image_url) {
+                    setProfileImage(profile.profile_image_url);
+                }
+            }
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleImageUpload = async (event) => {
+        try {
+            setUploadingImage(true);
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file type
+            if (!file.type.startsWith("image/")) {
+                throw new Error("Please upload an image file");
+            }
+
+            // Check file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                throw new Error("Image size should be less than 2MB");
+            }
+
+            // Create a unique filename
+            const fileExt = file.name.split(".").pop();
+            const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Upload image to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from("profile_images")
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from("profile_images").getPublicUrl(filePath);
+
+            // Update profile with image URL
+            const profileTable =
+                userRole === "student" ? "user_profiles" : "employer_profiles";
+            const { error: updateError } = await supabase
+                .from(profileTable)
+                .update({
+                    profile_image_url: publicUrl,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("user_id", user.id);
+
+            if (updateError) throw updateError;
+
+            // Update UI
+            setProfileImage(publicUrl);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleLogout = async () => {
+        try {
+            await supabase.auth.signOut();
+            router.push("/auth/login");
+        } catch (error) {
+            console.error("Error logging out:", error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-gray-500">Loading profile...</div>
+            </div>
+        );
+=======
+        if (profileError) throw profileError;
+        setProfileData(profile);
+      } else {
+        const { data: profile, error: profileError } = await supabase
+          .from("employer_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        setProfileData(profile);
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading profile...</div>
+      </div>
+>>>>>>> Stashed changes
     );
 
+<<<<<<< Updated upstream
     useEffect(() => {
         fetchProfile();
     }, []);
+=======
+<<<<<<< HEAD
+            {/* Content Wrapper */}
+            <div className={`relative ${!isLoggedIn ? "blur-sm" : ""}`}>
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row py-10 px-6">
+                    {/* Sidebar */}
+                    <aside className="md:w-1/3 bg-white shadow-lg rounded-lg p-6">
+                        {/* Profile Image with Upload Feature */}
+                        <div className="text-center">
+                            <div className="relative inline-block">
+                                <Image
+                                    src={profileImage}
+                                    alt="Profile Picture"
+                                    width={100}
+                                    height={100}
+                                    className="rounded-full object-cover w-24 h-24 mx-auto"
+                                />
+                                {uploadingImage ? (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={triggerFileInput}
+                                        className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 hover:bg-blue-700"
+                                        aria-label="Upload profile picture"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M12 4v16m8-8H4"
+                                            />
+                                        </svg>
+                                    </button>
+                                )}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    accept="image/*"
+                                />
+                            </div>
+                            <h2 className="text-2xl font-bold mt-4">
+                                {userRole === "student"
+                                    ? profileData?.full_name
+                                    : profileData?.company_name}
+                            </h2>
+                            <p className="text-gray-600">{user?.email}</p>
+                        </div>
+=======
+  const isLoggedIn = !!user;
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+>>>>>>> Stashed changes
 
     const fetchProfile = async () => {
         try {
@@ -30,6 +284,7 @@ export default function Profile() {
                 data: { user },
             } = await supabase.auth.getUser();
 
+<<<<<<< Updated upstream
             if (!user) {
                 return; // Let the UI handle the not logged in state
             }
@@ -155,12 +410,161 @@ export default function Profile() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-gray-500">Loading profile...</div>
+=======
+<<<<<<< HEAD
+                        {/* Sidebar Links */}
+                        <div className="mt-6 space-y-4">
+                            {userRole === "student" ? (
+                                <>
+                                    {/* Wrap the Skills tab with a Link */}
+                                    <Link href="/skillmanagement">
+                                        <SidebarLink title="Skills" />
+                                    </Link>
+                                    <Link href="/trends">
+                                        <SidebarLink title="Career Preferences" />
+                                    </Link>
+                                    <Link href="/recommendations">
+                                        <SidebarLink title="Saved Recommendations" />
+                                    </Link>
+                                    <Link href="/career-report">
+                                        <SidebarLink title="Generate Career Report" />
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <SidebarLink title="Job Listings" />
+                                    <SidebarLink title="Applications" />
+                                    <SidebarLink title="Company Profile" />
+                                </>
+                            )}
+                            <button
+                                onClick={handleLogout}
+                                className="w-full text-left text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-50 transition"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="md:w-2/3 md:ml-6 bg-white shadow-lg rounded-lg p-6 mt-6 md:mt-0">
+                        <h2 className="text-3xl font-semibold text-gray-900">
+                            Profile Overview
+                        </h2>
+
+                        {/* Bio Section */}
+                        <div className="mt-6">
+                            <h3 className="text-xl font-semibold text-gray-800">
+                                About
+                            </h3>
+                            <p className="text-gray-700 mt-2">
+                                {profileData?.bio || "No bio provided"}
+                            </p>
+                        </div>
+
+                        {/* Skills/Details Section */}
+                        {userRole === "student" ? (
+                            <div className="mt-6">
+                                <h3 className="text-xl font-semibold text-gray-800">
+                                    Skills
+                                </h3>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {profileData?.skills?.map(
+                                        (skill, index) => (
+                                            <span
+                                                key={index}
+                                                className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
+                                            >
+                                                {skill}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+
+                                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                                    Interests
+                                </h3>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {profileData?.interests?.map(
+                                        (interest, index) => (
+                                            <span
+                                                key={index}
+                                                className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
+                                            >
+                                                {interest}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="mt-6">
+                                <h3 className="text-xl font-semibold text-gray-800">
+                                    Company Details
+                                </h3>
+                                <div className="mt-2 space-y-2">
+                                    <p className="text-gray-700">
+                                        <span className="font-semibold">
+                                            Size:
+                                        </span>{" "}
+                                        {profileData?.company_size}
+                                    </p>
+                                    <p className="text-gray-700">
+                                        <span className="font-semibold">
+                                            Website:
+                                        </span>{" "}
+                                        <a
+                                            href={profileData?.website}
+                                            className="text-blue-600 hover:underline"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {profileData?.website}
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-6 flex justify-end">
+                            <Link href="auth/edit-profile">
+                                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                    Edit Profile
+                                </button>
+                            </Link>
+                        </div>
+                    </main>
+                </div>
+=======
+      {/* Content Wrapper */}
+      <div className={`relative ${!isLoggedIn ? "blur-sm" : ""}`}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row py-10 px-6">
+          {/* Sidebar */}
+          <aside className="md:w-1/3 bg-white shadow-lg rounded-lg p-6">
+            {/* Profile Image */}
+            <div className="text-center">
+              <Image
+                src="/profile-placeholder.jpg"
+                alt="Profile Picture"
+                width={100}
+                height={100}
+                className="rounded-full mx-auto"
+              />
+              <h2 className="text-2xl font-bold mt-4">
+                {userRole === "student"
+                  ? profileData?.full_name
+                  : profileData?.company_name}
+              </h2>
+              <p className="text-gray-600">{user?.email}</p>
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+>>>>>>> Stashed changes
             </div>
         );
     }
 
     const isLoggedIn = !!user;
 
+<<<<<<< Updated upstream
     return (
         <div className="relative bg-gray-100 min-h-screen">
             {/* Header */}
@@ -172,6 +576,32 @@ export default function Profile() {
                     Showcase your skills and career journey.
                 </p>
             </header>
+=======
+            {/* Sidebar Links */}
+            <div className="mt-6 space-y-4">
+              <SidebarLink title="Profile Overview" />
+              {userRole === "student" ? (
+                <>
+                  <SidebarLink title="Skills" />
+                  <SidebarLink title="Career Preferences" />
+                  <SidebarLink title="Saved Recommendations" />
+                </>
+              ) : (
+                <>
+                  <SidebarLink title="Job Listings" />
+                  <SidebarLink title="Applications" />
+                  <SidebarLink title="Company Profile" />
+                </>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-50 transition"
+              >
+                Sign Out
+              </button>
+            </div>
+          </aside>
+>>>>>>> Stashed changes
 
             {/* Content Wrapper */}
             <div className={`relative ${!isLoggedIn ? "blur-sm" : ""}`}>
@@ -414,9 +844,23 @@ export default function Profile() {
 
 // Sidebar Link Component
 function SidebarLink({ title }) {
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+>>>>>>> Stashed changes
     return (
         <button className="block w-full text-left text-gray-800 font-semibold px-4 py-2 rounded-lg border-l-4 border-red-400 hover:bg-gray-200 transition">
             {title}
         </button>
     );
+<<<<<<< Updated upstream
+=======
+=======
+  return (
+    <button className="block w-full text-left text-gray-800 font-semibold px-4 py-2 rounded-lg border-l-4 border-red-400 hover:bg-gray-200 transition">
+      {title}
+    </button>
+  );
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+>>>>>>> Stashed changes
 }
