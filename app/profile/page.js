@@ -258,7 +258,7 @@ export default function Profile() {
               {userRole === "student" ? (
                 <>
                   {/* Wrap the Skills tab with a Link */}
-                  <Link href="/skillgap">
+                  <Link href="/skillmanagement">
                     <SidebarLink title="Skills" />
                   </Link>
                   <Link href="/trends">
