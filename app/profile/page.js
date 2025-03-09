@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function Profile() {
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 <<<<<<< HEAD
@@ -28,6 +29,8 @@ export default function Profile() {
 =======
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,6 +38,9 @@ export default function Profile() {
   const [userRole, setUserRole] = useState(null);
   const [profileData, setProfileData] = useState(null);
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
@@ -43,6 +49,9 @@ export default function Profile() {
     fetchProfile();
   }, []);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 
   const fetchProfile = async () => {
     try {
@@ -75,6 +84,7 @@ export default function Profile() {
           .eq("user_id", user.id)
           .single();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 if (profileError) throw profileError;
                 setProfileData(profile);
@@ -189,6 +199,17 @@ export default function Profile() {
           .eq("user_id", user.id)
           .single();
 
+=======
+        if (profileError) throw profileError;
+        setProfileData(profile);
+      } else {
+        const { data: profile, error: profileError } = await supabase
+          .from("employer_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
         if (profileError) throw profileError;
         setProfileData(profile);
       }
@@ -196,6 +217,9 @@ export default function Profile() {
       setError(error.message);
     } finally {
       setLoading(false);
+<<<<<<< HEAD
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
     }
   };
@@ -214,6 +238,7 @@ export default function Profile() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-500">Loading profile...</div>
       </div>
+<<<<<<< HEAD
 >>>>>>> Stashed changes
     );
 
@@ -552,6 +577,25 @@ export default function Profile() {
                     </main>
                 </div>
 =======
+=======
+    );
+  }
+
+  const isLoggedIn = !!user;
+
+  return (
+    <div className="relative bg-gray-100 min-h-screen">
+      {/* Header */}
+      <header className="bg-black text-white py-20 text-center z-20 relative">
+        <h1 className="text-5xl font-extrabold uppercase tracking-wide">
+          My <span className="text-red-400">Profile</span>
+        </h1>
+        <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
+          Showcase your skills and career journey.
+        </p>
+      </header>
+
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
       {/* Content Wrapper */}
       <div className={`relative ${!isLoggedIn ? "blur-sm" : ""}`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row py-10 px-6">
@@ -572,6 +616,7 @@ export default function Profile() {
                   : profileData?.company_name}
               </h2>
               <p className="text-gray-600">{user?.email}</p>
+<<<<<<< HEAD
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
 >>>>>>> Stashed changes
             </div>
@@ -872,6 +917,8 @@ export default function Profile() {
               </h2>
               <p className="text-gray-600">{user?.email}</p>
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
             </div>
 
             {/* Profile Info */}
@@ -1038,6 +1085,7 @@ export default function Profile() {
 // Sidebar Link Component
 function SidebarLink({ title }) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 <<<<<<< HEAD
@@ -1052,14 +1100,19 @@ function SidebarLink({ title }) {
 =======
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
   return (
     <button className="block w-full text-left text-gray-800 font-semibold px-4 py-2 rounded-lg border-l-4 border-red-400 hover:bg-gray-200 transition">
       {title}
     </button>
   );
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
 }

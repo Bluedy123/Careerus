@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 import { supabase } from "@/lib/supabase";
 =======
 import { supabase } from '@/lib/supabase';
 >>>>>>> Stashed changes
+=======
+import { supabase } from '@/lib/supabase';
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 import { supabase } from '@/lib/supabase';
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
@@ -85,10 +89,13 @@ export default function Recommendations() {
           setRecommendations(data.data || []);
         } catch (error) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
             console.error("Error checking auth:", error);
             setError(error.message);
 =======
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
           console.error("Error fetching recommendations:", error);
@@ -96,7 +103,10 @@ export default function Recommendations() {
         } finally {
           setLoading(false);
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
         }

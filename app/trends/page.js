@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 import {
     BarChart,
@@ -53,6 +54,22 @@ export default function Trends() {
             const appId = process.env.NEXT_PUBLIC_ADZUNA_APP_ID;
             const appKey = process.env.NEXT_PUBLIC_ADZUNA_APP_KEY;
 =======
+=======
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+
+export default function Trends() {
+  const [loading, setLoading] = useState(false);
+  const [trends, setTrends] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("technology");
+  const [location, setLocation] = useState("");
+  const [chartData, setChartData] = useState([]);
+  const [salaryData, setSalaryData] = useState([]);
+
+  useEffect(() => {
+    fetchTrends(searchQuery, location);
+  }, []);
+
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
   const fetchTrends = async (query = "technology", loc = "") => {
     setLoading(true);
     try {
@@ -66,6 +83,9 @@ export default function Trends() {
       if (!response.ok) throw new Error("Failed to fetch job trends");
       const data = await response.json();
       setTrends(data.results || []);
+<<<<<<< HEAD
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
 
       // Extract job demand & salary data
@@ -136,6 +156,7 @@ export default function Trends() {
             Search
           </button>
         </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
     );
 }
@@ -224,6 +245,8 @@ export default function Trends() {
         </div>
 =======
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
+=======
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
       </div>
 
       {/* Charts & Job Listings */}
@@ -274,8 +297,12 @@ export default function Trends() {
     </div>
   );
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 >>>>>>> Stashed changes
+=======
+}
+>>>>>>> parent of d4c18ec (I added career report and improved the code)
 =======
 }
 >>>>>>> parent of d4c18ec (I added career report and improved the code)
