@@ -267,6 +267,9 @@ export default function Profile() {
                   <Link href="/recommendations">
                   <SidebarLink title="Saved Recommendations" />
                   </Link>
+                  <Link href="/career-report">
+                  <SidebarLink title="Generate Career Report" />
+                  </Link>
                 </>
               ) : (
                 <>
