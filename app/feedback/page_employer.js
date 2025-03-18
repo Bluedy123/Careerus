@@ -11,6 +11,8 @@ export function FeedbackEmployer() {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [feedback, setFeedback] = useState("");
     const [submittedFeedback, setSubmittedFeedback] = useState([]);
+
+    // Fetch student profiles when the component mounts
     useEffect(() => {
         async function getUsers() {
             const users = await getUserProfiles();
@@ -19,15 +21,19 @@ export function FeedbackEmployer() {
         getUsers();
     }, []);
 
+    // Handle feedback submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (selectedStudent.trim() !== "" && feedback.trim() !== "") {
+
+        // Ensure a student is selected and feedback is not empty
+        if (selectedStudent && feedback.trim() !== "") {
+            // Add the new feedback entry to the submittedFeedback array
             setSubmittedFeedback([
                 ...submittedFeedback,
                 { selectedStudent, feedback },
             ]);
-            setSelectedStudent(""); // Clear student name field
-            setFeedback(""); // Clear feedback field
+            setSelectedStudent(null);
+            setFeedback("");
         }
     };
 
@@ -66,16 +72,10 @@ export function FeedbackEmployer() {
                         Provide constructive feedback to help students improve.
                     </p>
                     <form onSubmit={handleSubmit} className="mt-6">
-                        {/*<input
-                            type="text"
-                            className="w-full p-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 text-black"
-                            placeholder="Student Name"
-                            value={studentName}
-                            onChange={(e) => setStudentName(e.target.value)}
-                        />*/}
+                        {/* Student Selection Autocomplete */}
                         <Autocomplete
                             disablePortal
-                            options={students}
+                            options={students} // Provide list of students as options
                             getOptionLabel={(student) => student.email}
                             sx={{ width: 1 }}
                             renderInput={(params) => (
@@ -85,14 +85,19 @@ export function FeedbackEmployer() {
                                 setSelectedStudent(newValue)
                             }
                         />
-                        {selectedStudent?.user_profiles[0].full_name}
+                        {/* Display student's fullname */}
+                        {selectedStudent &&
+                            `Student's full name: ${selectedStudent?.user_profiles[0].full_name}`}
+                        {/* Feedback input field */}
                         <textarea
-                            className="w-full p-4 mt-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 text-black"
+                            className="w-full p-4 mt-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2
+                        focus:ring-red-400 text-black"
                             rows="5"
                             placeholder="Provide feedback on the student..."
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                         />
+                        {/* Submit button */}
                         <button
                             type="submit"
                             className="mt-4 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold uppercase tracking-wider hover:bg-red-600 transition"
@@ -103,7 +108,7 @@ export function FeedbackEmployer() {
                 </div>
             </section>
 
-            {/* Display Submitted Feedback */}
+            {/* History of feedback you submitted */}
             {submittedFeedback.length > 0 && (
                 <section className="max-w-6xl mx-auto py-16 px-6">
                     <h2 className="text-3xl font-semibold text-gray-900 text-center">
@@ -116,7 +121,7 @@ export function FeedbackEmployer() {
                                 className="bg-gray-200 p-6 rounded-lg shadow-md"
                             >
                                 <h3 className="text-lg font-bold text-gray-800">
-                                    Feedback on {entry.studentName}
+                                    Feedback on {entry.selectedStudent?.email}
                                 </h3>
                                 <p className="text-gray-800 mt-2 italic">
                                     "{entry.feedback}"

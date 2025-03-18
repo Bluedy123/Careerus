@@ -24,67 +24,36 @@ export function FeedbackStudent() {
             {/* Header */}
             <header className="bg-black text-white py-20 text-center">
                 <h1 className="text-5xl font-extrabold uppercase tracking-wide">
-                    Student <span className="text-red-400">Feedback</span>
+                    Employer <span className="text-red-400">Feedback</span>
                 </h1>
                 <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
-                    Provide feedback on student profiles to help improve their
-                    employability.
+                    Get feedback from employers for your future.
                 </p>
             </header>
-
             {/* Why Feedback Matters Section */}
             <section className="max-w-6xl mx-auto py-16 px-6 text-center">
                 <h2 className="text-3xl font-semibold text-gray-900">
                     Why Employer Feedback Matters
                 </h2>
                 <p className="text-lg text-gray-700 mt-4 leading-relaxed">
-                    Your insights help students develop the skills they need to
-                    succeed in the workforce. By providing feedback, you help
-                    students improve their employability and career readiness.
+                    Employer feedback helps you develop the skills you need to
+                    succeed in the workforce. By receiving feedback, you can
+                    improve your employability and career readiness.
                 </p>
             </section>
-
-            {/* Feedback Form */}
-            <section className="bg-white py-16 px-6">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-3xl font-semibold text-gray-900">
-                        Submit Feedback on a Student
-                    </h2>
-                    <p className="text-lg text-gray-700 mt-4">
-                        Provide constructive feedback to help students improve.
-                    </p>
-                    <form onSubmit={handleSubmit} className="mt-6">
-                        <input
-                            type="text"
-                            className="w-full p-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 text-black"
-                            placeholder="Student Name"
-                            value={studentName}
-                            onChange={(e) => setStudentName(e.target.value)}
-                        />
-                        <textarea
-                            className="w-full p-4 mt-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 text-black"
-                            rows="5"
-                            placeholder="Provide feedback on the student..."
-                            value={feedback}
-                            onChange={(e) => setFeedback(e.target.value)}
-                        />
-                        <button
-                            type="submit"
-                            className="mt-4 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold uppercase tracking-wider hover:bg-red-600 transition"
-                        >
-                            Submit Feedback
-                        </button>
-                    </form>
-                </div>
-            </section>
-
             {/* Display Submitted Feedback */}
-            {submittedFeedback.length > 0 && (
-                <section className="max-w-6xl mx-auto py-16 px-6">
-                    <h2 className="text-3xl font-semibold text-gray-900 text-center">
-                        Recent Employer Feedback
-                    </h2>
+            <section className="max-w-6xl mx-auto py-16 px-6">
+                <h2 className="text-3xl font-semibold text-gray-900 text-center">
+                    Submitted feedback
+                </h2>
+                {/* Check if there any submitted feedback */}
+                {submittedFeedback.length === 0 ? (
+                    <p className="text-lg •text-gray-600 text-center mt-4">
+                        No feedback submitted yet.
+                    </p>
+                ) : (
                     <div className="mt-8 space-y-6">
+                        {/* Loop through the submitted feedback array and display each entry */}
                         {submittedFeedback.map((entry, index) => (
                             <div
                                 key={index}
@@ -99,18 +68,7 @@ export function FeedbackStudent() {
                             </div>
                         ))}
                     </div>
-                </section>
-            )}
-
-            {/* Call to Action */}
-            <section className="text-center py-16">
-                <h2 className="text-3xl font-semibold text-gray-900">
-                    Help Students Succeed
-                </h2>
-                <p className="text-lg text-gray-700 mt-4">
-                    Your feedback helps students prepare for the real-world job
-                    market.
-                </p>
+                )}
             </section>
         </div>
     );
