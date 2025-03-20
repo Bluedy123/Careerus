@@ -1,23 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { getUser, getFeedbacks } from "@/lib/supabase";
+import { useState, useEffect } from "react";
 
 export function FeedbackStudent() {
-    const [studentName, setStudentName] = useState("");
-    const [feedback, setFeedback] = useState("");
+    const [loginUser, setLoginUser] = useState(null);
     const [submittedFeedback, setSubmittedFeedback] = useState([]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (studentName.trim() !== "" && feedback.trim() !== "") {
-            setSubmittedFeedback([
-                ...submittedFeedback,
-                { studentName, feedback },
-            ]);
-            setStudentName(""); // Clear student name field
-            setFeedback(""); // Clear feedback field
+    useEffect(() => {
+        async function fetchUser() {
+            const { user } = await getUser();
+            setLoginUser(user);
         }
-    };
+        fetchUser().catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        async function fetchFeedbacks() {
+            if (!loginUser) return;
+            const data = await getFeedbacks(loginUser.id);
+            setSubmittedFeedback(data);
+        }
+        fetchFeedbacks().catch(console.error);
+    }, [loginUser]);
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -54,16 +59,21 @@ export function FeedbackStudent() {
                 ) : (
                     <div className="mt-8 space-y-6">
                         {/* Loop through the submitted feedback array and display each entry */}
-                        {submittedFeedback.map((entry, index) => (
+                        {submittedFeedback.map((entry) => (
                             <div
-                                key={index}
+                                key={entry.feedback_id}
                                 className="bg-gray-200 p-6 rounded-lg shadow-md"
                             >
                                 <h3 className="text-lg font-bold text-gray-800">
-                                    Feedback on {entry.studentName}
+                                    Feedback by {entry.employer.email}
                                 </h3>
                                 <p className="text-gray-800 mt-2 italic">
-                                    "{entry.feedback}"
+                                    &quot;{entry.content}&quot;
+                                </p>
+                                <p className="text-gray-600 mt-2">
+                                    {new Date(
+                                        entry.created_at,
+                                    ).toLocaleString()}
                                 </p>
                             </div>
                         ))}

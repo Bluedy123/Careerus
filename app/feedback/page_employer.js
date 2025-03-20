@@ -1,12 +1,13 @@
 "use client";
 
-import { getUserProfiles } from "@/lib/supabase";
+import { getStudentProfiles, saveFeedbacks, getUser } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 
 export function FeedbackEmployer() {
+    const [loginUser, setLoginUser] = useState(null);
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [feedback, setFeedback] = useState("");
@@ -14,15 +15,27 @@ export function FeedbackEmployer() {
 
     // Fetch student profiles when the component mounts
     useEffect(() => {
-        async function getUsers() {
-            const users = await getUserProfiles();
+        async function getStudents() {
+            const users = await getStudentProfiles();
             setStudents(users);
         }
-        getUsers();
+        getStudents().catch((error) =>
+            console.error("Error fetching students:", error.message),
+        );
+    }, []);
+
+    useEffect(() => {
+        async function getLoginUser() {
+            const { user } = await getUser();
+            setLoginUser(user);
+        }
+        getLoginUser().catch((error) =>
+            console.error("Error fetching user:", error.message),
+        );
     }, []);
 
     // Handle feedback submission
-    const handleSubmit = (e) => {
+    async function handleSubmit(e) {
         e.preventDefault();
 
         // Ensure a student is selected and feedback is not empty
@@ -32,10 +45,14 @@ export function FeedbackEmployer() {
                 ...submittedFeedback,
                 { selectedStudent, feedback },
             ]);
-            setSelectedStudent(null);
             setFeedback("");
+            await saveFeedbacks(
+                loginUser.id,
+                selectedStudent.user_id,
+                feedback,
+            );
         }
-    };
+    }
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -45,7 +62,7 @@ export function FeedbackEmployer() {
                     Employer <span className="text-red-400">Feedback</span>
                 </h1>
                 <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
-                    Provide feedback on student profiles to help improve their
+                    Provide feedback students to help improve their
                     employability.
                 </p>
             </header>
@@ -124,7 +141,7 @@ export function FeedbackEmployer() {
                                     Feedback on {entry.selectedStudent?.email}
                                 </h3>
                                 <p className="text-gray-800 mt-2 italic">
-                                    "{entry.feedback}"
+                                    &quot;{entry.feedback}&quot;
                                 </p>
                             </div>
                         ))}

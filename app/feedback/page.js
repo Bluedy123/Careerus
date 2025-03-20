@@ -9,14 +9,16 @@ import Link from "next/link";
 
 export default function FeedbackPage() {
     const [userRole, setUserRole] = useState("");
+
     useEffect(() => {
         async function getUserRole() {
             const { user } = await getUser();
-            const userprofile = await getUserProfile(user.id);
-            setUserRole(userprofile.role);
+            if (!user) return;
+            const userProfile = await getUserProfile(user.id);
+            setUserRole(userProfile.role);
         }
         getUserRole().catch((error) =>
-            console.error("Error fetching user role:", error.message),
+            console.error("Error fetching user role:", error),
         );
     }, []);
 
