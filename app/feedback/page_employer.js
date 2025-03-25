@@ -103,8 +103,19 @@ export function FeedbackEmployer() {
                             }
                         />
                         {/* Display student's fullname */}
-                        {selectedStudent &&
-                            `Student's full name: ${selectedStudent?.user_profiles[0].full_name}`}
+                        {selectedStudent && (
+                            <div className="mt-3 p-2 bg-gray-100 rounded-md shadow-sm text-gray-800 text-sm">
+                                <span className="font-semibold">
+                                    Student&apos;s Full Name:
+                                </span>
+                                <span className="ml-1">
+                                    {
+                                        selectedStudent?.user_profiles[0]
+                                            .full_name
+                                    }
+                                </span>
+                            </div>
+                        )}
                         {/* Feedback input field */}
                         <textarea
                             className="w-full p-4 mt-4 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2

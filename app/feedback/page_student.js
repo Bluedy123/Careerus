@@ -24,59 +24,68 @@ export function FeedbackStudent() {
         fetchFeedbacks().catch(console.error);
     }, [loginUser]);
 
+    //console.log(submittedFeedback);
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-50 min-h-screen">
             {/* Header */}
-            <header className="bg-black text-white py-20 text-center">
-                <h1 className="text-5xl font-extrabold uppercase tracking-wide">
+            <header className="bg-black text-white py-16 text-center">
+                <h1 className="text-5xl font-extrabold tracking-wide">
                     Employer <span className="text-red-400">Feedback</span>
                 </h1>
-                <p className="text-lg mt-4 text-gray-300 max-w-3xl mx-auto">
-                    Get feedback from employers for your future.
+                <p className="text-lg mt-4 text-gray-300 max-w-2xl mx-auto">
+                    Gain insights from employers to enhance your career.
                 </p>
             </header>
-            {/* Why Feedback Matters Section */}
-            <section className="max-w-6xl mx-auto py-16 px-6 text-center">
+
+            {/* Why Feedback Matters */}
+            <section className="max-w-4xl mx-auto py-12 px-6 text-center">
                 <h2 className="text-3xl font-semibold text-gray-900">
                     Why Employer Feedback Matters
                 </h2>
                 <p className="text-lg text-gray-700 mt-4 leading-relaxed">
-                    Employer feedback helps you develop the skills you need to
-                    succeed in the workforce. By receiving feedback, you can
-                    improve your employability and career readiness.
+                    Employer feedback helps you develop the skills needed to
+                    succeed. Improve your employability and career readiness by
+                    learning from professionals.
                 </p>
             </section>
-            {/* Display Submitted Feedback */}
-            <section className="max-w-6xl mx-auto py-16 px-6">
-                <h2 className="text-3xl font-semibold text-gray-900 text-center">
-                    Submitted feedback
+
+            {/* Feedback List */}
+            <section className="max-w-4xl mx-auto py-12 px-6">
+                <h2 className="text-3xl font-semibold text-gray-900 text-center mb-6">
+                    Submitted Feedback
                 </h2>
-                {/* Check if there any submitted feedback */}
                 {submittedFeedback.length === 0 ? (
-                    <p className="text-lg •text-gray-600 text-center mt-4">
+                    <p className="text-lg text-gray-600 text-center">
                         No feedback submitted yet.
                     </p>
                 ) : (
-                    <div className="mt-8 space-y-6">
-                        {/* Loop through the submitted feedback array and display each entry */}
-                        {submittedFeedback.map((entry) => (
-                            <div
-                                key={entry.feedback_id}
-                                className="bg-gray-200 p-6 rounded-lg shadow-md"
-                            >
-                                <h3 className="text-lg font-bold text-gray-800">
-                                    Feedback by {entry.employer.email}
-                                </h3>
-                                <p className="text-gray-800 mt-2 italic">
-                                    &quot;{entry.content}&quot;
-                                </p>
-                                <p className="text-gray-600 mt-2">
-                                    {new Date(
-                                        entry.created_at,
-                                    ).toLocaleString()}
-                                </p>
-                            </div>
-                        ))}
+                    <div className="space-y-6">
+                        {submittedFeedback.map((feedback) => {
+                            return (
+                                <div
+                                    key={feedback.feedback_id}
+                                    className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
+                                >
+                                    <div className="flex flex-col md:flex-row justify-between">
+                                        <h3 className="text-lg font-bold text-gray-800">
+                                            Feedback from{" "}
+                                            {feedback.employer?.employer_profiles?.at(
+                                                0,
+                                            )?.company_name ??
+                                                "Unknown Company"}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm">
+                                            {new Date(
+                                                feedback.created_at,
+                                            ).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <p className="text-gray-900 mt-4 italic border-l-4 border-red-400 pl-4">
+                                        “{feedback.content}”
+                                    </p>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </section>

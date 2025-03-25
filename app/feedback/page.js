@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { getUser, getUserProfile } from "@/lib/supabase";
 import { FeedbackEmployer } from "./page_employer";
 import { FeedbackStudent } from "./page_student";
@@ -9,18 +8,34 @@ import Link from "next/link";
 
 export default function FeedbackPage() {
     const [userRole, setUserRole] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         async function getUserRole() {
-            const { user } = await getUser();
-            if (!user) return;
-            const userProfile = await getUserProfile(user.id);
-            setUserRole(userProfile.role);
+            try {
+                setIsLoading(true);
+                const { user } = await getUser();
+                if (!user) return;
+                const userProfile = await getUserProfile(user.id);
+                setUserRole(userProfile.role);
+            } catch (error) {
+                console.error("Error fetching user role:", error);
+            } finally {
+                setIsLoading(false);
+            }
         }
-        getUserRole().catch((error) =>
-            console.error("Error fetching user role:", error),
-        );
+        getUserRole();
     }, []);
+
+    if (isLoading) {
+        return (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
+                <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+                    <p className="text-gray-700">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (userRole === "employer") {
         return <FeedbackEmployer />;
