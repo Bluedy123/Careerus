@@ -261,7 +261,7 @@ export default function Profile() {
                   <Link href="/skillmanagement">
                     <SidebarLink title="Skills" />
                   </Link>
-                  <Link href="/trends">
+                  <Link href="/careerpreferences">
                   <SidebarLink title="Career Preferences" />
                   </Link>
                   <Link href="/recommendations">
