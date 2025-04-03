@@ -32,6 +32,7 @@ export default function Recommendations() {
 
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [careerPreferences, setCareerPreferences] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [savedCareers, setSavedCareers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,15 +60,16 @@ export default function Recommendations() {
       if (profileError) throw profileError;
       setUserProfile(profile);
 
-      // Fetch saved careers if you have a saved_careers table
-      const { data: savedData, error: savedError } = await supabase
+      // Fetch career preferences
+      const { data: preferencesData, error: preferencesError } = await supabase
         .from('user_career_preferences')
-        .select('saved_careers')
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (!savedError && savedData) {
-        setSavedCareers(savedData.saved_careers || []);
+      if (!preferencesError && preferencesData) {
+        setCareerPreferences(preferencesData);
+        setSavedCareers(preferencesData.saved_careers || []);
       }
     } catch (error) {
       console.error('Error checking auth:', error);
@@ -79,36 +81,150 @@ export default function Recommendations() {
   useEffect(() => {
     if (user && userProfile?.skills?.length > 0) {
       setLoading(true);
-      const fetchRecommendations = async () => {
-        try {
-          const skillQuery = userProfile.skills.join(" ");
-          const response = await fetch(
-            `https://jsearch.p.rapidapi.com/search?query=${skillQuery}&page=1&num_pages=1`,
-            {
-              method: "GET",
-              headers: {
-                "X-RapidAPI-Key": API_KEY,
-                "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
-              },
-            }
-          );
-
-          if (!response.ok) throw new Error("Failed to fetch recommendations");
-
-          const data = await response.json();
-          setRecommendations(data.data || []);
-        } catch (error) {
-          console.error("Error fetching recommendations:", error);
-          setError("API limit reached. Showing sample data instead.");
-          setRecommendations(mockRecommendations);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchRecommendations();
     }
-  }, [userProfile, user]);
+  }, [userProfile, careerPreferences, user]);
+
+  const fetchRecommendations = async () => {
+    try {
+      // Try different search strategies in sequence until we get results
+      let results = [];
+      
+      // Strategy 1: Using skills + primary industry preference (if available)
+      if (results.length === 0) {
+        const query = buildQueryWithPrimaryPreference();
+        console.log("Trying search with skills + primary preference:", query);
+        results = await searchJobs(query);
+      }
+      
+      // Strategy 2: Skills only if previous search returned no results
+      if (results.length === 0) {
+        const skillsOnly = userProfile.skills.join(" ");
+        console.log("Trying search with skills only:", skillsOnly);
+        results = await searchJobs(skillsOnly);
+      }
+      
+      // Strategy 3: Use general job titles related to user's skills
+      if (results.length === 0) {
+        const generalQuery = "developer programmer analyst engineer manager " + 
+                            (userProfile.skills[0] || "software");
+        console.log("Trying search with general terms:", generalQuery);
+        results = await searchJobs(generalQuery);
+      }
+      
+      // If we got results, apply preference filtering only if we have enough results
+      if (results.length > 0) {
+        let filteredResults = [...results];
+        
+        // Only apply salary filtering if we have enough results
+        if (careerPreferences?.min_salary && filteredResults.length > 5) {
+          const beforeCount = filteredResults.length;
+          filteredResults = filteredResults.filter(job => 
+            (job.job_min_salary && job.job_min_salary >= careerPreferences.min_salary) ||
+            (job.job_max_salary && job.job_max_salary >= careerPreferences.min_salary)
+          );
+          console.log(`Salary filter: ${beforeCount} -> ${filteredResults.length} results`);
+          
+          // Revert filtering if too few results remain
+          if (filteredResults.length < 3) {
+            console.log("Too few results after salary filtering, reverting");
+            filteredResults = results;
+          }
+        }
+        
+        // Apply location type filtering only if we have enough results
+        if (careerPreferences?.desired_location_types?.length > 0 && filteredResults.length > 5) {
+          const beforeCount = filteredResults.length;
+          const locationTypes = careerPreferences.desired_location_types.map(type => type.toLowerCase());
+          
+          const locationFiltered = filteredResults.filter(job => {
+            const jobDescription = (job.job_description || "").toLowerCase();
+            return locationTypes.some(type => 
+              jobDescription.includes(type) || 
+              jobDescription.includes("work from home") ||
+              jobDescription.includes("wfh")
+            );
+          });
+          
+          console.log(`Location type filter: ${beforeCount} -> ${locationFiltered.length} results`);
+          
+          // Only use location filtering if we still have enough results
+          if (locationFiltered.length >= 3) {
+            filteredResults = locationFiltered;
+          }
+        }
+        
+        setRecommendations(filteredResults);
+      } else {
+        // If all strategies failed, use mock data
+        console.log("All search strategies failed, using mock data");
+        setError("Could not find specific matches. Showing sample career options instead.");
+        setRecommendations(mockRecommendations);
+      }
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      setError("API limit reached. Showing sample data instead.");
+      setRecommendations(mockRecommendations);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Helper function to search jobs with a query
+  const searchJobs = async (query) => {
+    if (!query.trim()) return [];
+    
+    try {
+      const response = await fetch(
+        `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=1`,
+        {
+          method: "GET",
+          headers: {
+            "X-RapidAPI-Key": API_KEY,
+            "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error("API response not OK:", response.status);
+        return [];
+      }
+
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error("Error in searchJobs:", error);
+      return [];
+    }
+  };
+  
+  // Build a query with skills and primary industry preference
+  const buildQueryWithPrimaryPreference = () => {
+    const queryParts = [];
+    
+    // Add skills to query (most important)
+    if (userProfile?.skills?.length > 0) {
+      // Take top 3 skills maximum to avoid too specific queries
+      const topSkills = userProfile.skills.slice(0, 3);
+      queryParts.push(topSkills.join(" "));
+    }
+    
+    // Add only the most important preference to avoid over-filtering
+    if (careerPreferences) {
+      // Add primary industry if available (only one)
+      if (careerPreferences.desired_industries?.length > 0) {
+        queryParts.push(careerPreferences.desired_industries[0]);
+      }
+      
+      // Add primary location if available (only one, for specificity)
+      if (careerPreferences.desired_locations?.length > 0) {
+        queryParts.push("in " + careerPreferences.desired_locations[0]);
+      }
+    }
+    
+    return queryParts.join(" ");
+  };
 
   const handleSave = async (career) => {
     try {
@@ -133,6 +249,39 @@ export default function Recommendations() {
     }
   };
 
+  const renderPreferencesList = () => {
+    if (!careerPreferences) return null;
+    
+    const preferenceSections = [];
+    
+    if (careerPreferences.desired_industries?.length > 0) {
+      preferenceSections.push(`Industries: ${careerPreferences.desired_industries.join(", ")}`);
+    }
+    
+    if (careerPreferences.desired_job_types?.length > 0) {
+      preferenceSections.push(`Job Types: ${careerPreferences.desired_job_types.join(", ")}`);
+    }
+    
+    if (careerPreferences.desired_location_types?.length > 0) {
+      preferenceSections.push(`Work Style: ${careerPreferences.desired_location_types.join(", ")}`);
+    }
+    
+    if (careerPreferences.min_salary) {
+      preferenceSections.push(`Min Salary: $${careerPreferences.min_salary}`);
+    }
+    
+    return preferenceSections.length > 0 ? (
+      <div className="mt-3 bg-gray-100 p-4 rounded-lg">
+        <h3 className="text-lg font-medium text-gray-800 mb-2">Your Career Preferences:</h3>
+        <ul className="list-disc list-inside space-y-1">
+          {preferenceSections.map((pref, index) => (
+            <li key={index} className="text-gray-700">{pref}</li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+  };
+
   return (
     <div className="relative bg-gray-100 min-h-screen">
       {/* Header */}
@@ -149,9 +298,22 @@ export default function Recommendations() {
           <h2 className="text-3xl font-semibold text-gray-900 text-center">
             Your Personalized Career Matches
           </h2>
-          <p className="text-lg text-gray-700 mt-4 text-center">
-            Based on your skills: {userProfile?.skills?.join(", ")}
-          </p>
+          
+          <div className="mt-4 text-lg text-gray-700 text-center">
+            <p>Based on your skills: {userProfile?.skills?.join(", ")}</p>
+            {renderPreferencesList()}
+            
+            {!careerPreferences && (
+              <div className="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-300">
+                <p className="text-yellow-800">
+                  ⚠️ No career preferences found. 
+                  <a href="/careerpreferences" className="underline font-medium ml-1">
+                    Set your preferences
+                  </a> to get more relevant recommendations.
+                </p>
+              </div>
+            )}
+          </div>
 
           {error && (
             <div className="text-center text-red-600 mt-6 p-4 bg-red-50 rounded">
@@ -199,7 +361,7 @@ export default function Recommendations() {
             </div>
           ) : (
             <p className="text-center text-gray-600 mt-6">
-              No matching careers found based on your skills.
+              No matching careers found based on your skills and preferences.
             </p>
           )}
         </section>

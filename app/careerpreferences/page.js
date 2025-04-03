@@ -150,7 +150,9 @@ export default function CareerPreferences() {
           user_id: user.id,
           ...preferences,
           updated_at: new Date().toISOString()
-        });
+        },
+        { onConflict: 'user_id' } // conflict target now correctly references a unique column
+      );
 
       if (error) throw error;
       
