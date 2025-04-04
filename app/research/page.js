@@ -7,20 +7,42 @@ export default function CareerResearchPage() {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Hardcoded careers for testing
+  const careers = [
+    {
+      id: 1,
+      name: "Software Engineer",
+      description: "Design, develop, and maintain software applications.",
+    },
+    {
+      id: 2,
+      name: "Data Scientist",
+      description: "Analyze large datasets to extract actionable insights.",
+    },
+    {
+      id: 3,
+      name: "Product Manager",
+      description: "Guide product strategy and oversee development.",
+    },
+    {
+      id: 4,
+      name: "UX Designer",
+      description: "Design user interfaces and enhance user experience.",
+    },
+  ];
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      const res = await fetch(
-        `/api/careers?query=${encodeURIComponent(searchTerm)}`
+
+    // Simulate a network delay for testing
+    setTimeout(() => {
+      const filteredResults = careers.filter((career) =>
+        career.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      const data = await res.json();
-      setResults(data.results);
-    } catch (error) {
-      console.error("Error fetching careers:", error);
-    } finally {
+      setResults(filteredResults);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
