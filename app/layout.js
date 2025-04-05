@@ -69,6 +69,7 @@ export default function RootLayout({ children }) {
                             <NavItem href="/trends">Trends</NavItem>
                             <NavItem href="/feedback">Feedback</NavItem>
                             <NavItem href="/profile">Profile</NavItem>
+                            <NavItem href="/resume-builder">Resume Builder</NavItem>
                             <NavItem href="/help">Help</NavItem>
                             <NavItem href="/about">About</NavItem>
                         </div>
