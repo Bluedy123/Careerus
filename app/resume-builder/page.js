@@ -49,7 +49,7 @@ export default function ResumeGenerator() {
     certifications: ''
   });
 
-  const [theme, setTheme] = useState('classic'); // classic, modern, professional, harvard
+  const [theme, setTheme] = useState('harvard');
 
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
