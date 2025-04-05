@@ -46,6 +46,8 @@ export function FeedbackEmployer() {
                 { selectedStudent, feedback },
             ]);
             setFeedback("");
+
+            // Save feedback to the backend using Supabase function
             await saveFeedbacks(
                 loginUser.id,
                 selectedStudent.user_id,

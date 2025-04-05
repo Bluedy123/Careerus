@@ -1,32 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUser, getUserProfile } from "@/lib/supabase";
-import { FeedbackEmployer } from "./page_employer";
-import { FeedbackStudent } from "./page_student";
-import Link from "next/link";
+import { getUser, getUserProfile } from "@/lib/supabase"; // Supabase functions to get user and their profile
+import { FeedbackEmployer } from "./page_employer"; // Employer-specific feedback component
+import { FeedbackStudent } from "./page_student"; // Student-specific feedback component
+import Link from "next/link"; // For navigation
 
 export default function FeedbackPage() {
     const [userRole, setUserRole] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    // fetch the user role on component mount
     useEffect(() => {
         async function getUserRole() {
             try {
+                // Show loading indicator
                 setIsLoading(true);
+                // Get currently logged-in user
                 const { user } = await getUser();
+
                 if (!user) return;
                 const userProfile = await getUserProfile(user.id);
                 setUserRole(userProfile.role);
             } catch (error) {
                 console.error("Error fetching user role:", error);
             } finally {
+                // Stop loading indicator
                 setIsLoading(false);
             }
         }
+
         getUserRole();
     }, []);
 
+    // If data is still loading, show a loading screen
     if (isLoading) {
         return (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
@@ -37,11 +44,16 @@ export default function FeedbackPage() {
         );
     }
 
+    // If the user is an employer, show employer feedback page
     if (userRole === "employer") {
         return <FeedbackEmployer />;
-    } else if (userRole === "student") {
+    }
+    // If the user is a student, show student feedback page
+    else if (userRole === "student") {
         return <FeedbackStudent />;
-    } else {
+    }
+    // If no valid user role is found (e.g. not logged in), prompt for sign in
+    else {
         return (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
                 <div className="bg-white p-8 rounded-lg shadow-lg text-center w-96 z-30">
