@@ -1,48 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function CareerResearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Hardcoded careers for testing
-  const careers = [
-    {
-      id: 1,
-      name: "Software Engineer",
-      description: "Design, develop, and maintain software applications.",
-    },
-    {
-      id: 2,
-      name: "Data Scientist",
-      description: "Analyze large datasets to extract actionable insights.",
-    },
-    {
-      id: 3,
-      name: "Product Manager",
-      description: "Guide product strategy and oversee development.",
-    },
-    {
-      id: 4,
-      name: "UX Designer",
-      description: "Design user interfaces and enhance user experience.",
-    },
-  ];
+  const [error, setError] = useState(null);
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    // Simulate a network delay for testing
-    setTimeout(() => {
-      const filteredResults = careers.filter((career) =>
-        career.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setResults(filteredResults);
+    try {
+      const res = await fetch(`/api/careers?query=${encodeURIComponent(searchTerm)}`);
+      if (!res.ok) throw new Error('Failed to fetch careers.');
+      const data = await res.json();
+      setResults(data.occupation || []);
+    } catch (err) {
+      console.error("Error fetching careers:", err);
+      setError("There was an error fetching data. Please try again later.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -87,6 +69,11 @@ export default function CareerResearchPage() {
           </button>
         </form>
 
+        {/* Error Message */}
+        {error && (
+          <div className="text-center text-red-500 mb-6">{error}</div>
+        )}
+
         {/* Loading Indicator */}
         {isLoading && (
           <div className="text-center py-6">
@@ -99,21 +86,22 @@ export default function CareerResearchPage() {
         {!isLoading && results.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.map((career) => (
-              <div
-                key={career.id}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              >
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {career.name}
-                </h3>
-                <p className="text-gray-700 mt-2">{career.description}</p>
-              </div>
+              <Link key={career.code} href={`/careers/${career.code}`}>
+                <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    {career.title}
+                  </h3>
+                  <p className="text-gray-700 mt-2">
+                    Code: {career.code}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         )}
 
         {/* No Results Message */}
-        {!isLoading && results.length === 0 && searchTerm.length > 0 && (
+        {!isLoading && results.length === 0 && searchTerm.length > 0 && !error && (
           <div className="text-center mt-6 text-gray-500">
             No results found for “{searchTerm}”.
           </div>
