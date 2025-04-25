@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseStringPromise } from "xml2js";
 
-export async function GET(req) {
+export async function GET() {
   const username = process.env.ONET_USERNAME;
   const password = process.env.ONET_PASSWORD;
 
@@ -12,7 +12,6 @@ export async function GET(req) {
   try {
     const basicAuth = Buffer.from(`${username}:${password}`).toString("base64");
 
-    // ✅ Fetch ALL occupations, no keyword
     const res = await fetch(`https://services.onetcenter.org/ws/online/occupations`, {
       headers: {
         Authorization: `Basic ${basicAuth}`,
@@ -23,17 +22,16 @@ export async function GET(req) {
     const xml = await res.text();
     const result = await parseStringPromise(xml, { explicitArray: false });
 
-    const list = result?.occupations?.occupation || [];
-    const occupations = Array.isArray(list) ? list : [list];
+    const occupations = result?.occupations?.occupation || [];
 
     return NextResponse.json({
-      occupation: occupations.map((o) => ({
+      occupation: Array.isArray(occupations) ? occupations.map(o => ({
         title: o.title,
         code: o.code,
-      })),
+      })) : [],
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to fetch O*NET data." }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch careers." }, { status: 500 });
   }
 }
