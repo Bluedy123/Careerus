@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function CareerResearchPage() {
@@ -9,20 +9,17 @@ export default function CareerResearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchTerm.trim()) return;
-    
+  const handleSearch = async (query) => {
+    if (!query.trim()) {
+      setCareers([]);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-  
+
     try {
-      let queryFormatted = searchTerm.trim().toLowerCase();
-      if (queryFormatted.split(" ").length === 1) {
-        queryFormatted += " jobs"; // Help JSearch find jobs for short queries
-      }
-  
-      const res = await fetch(`/api/careers?query=${encodeURIComponent(queryFormatted)}`);
+      const res = await fetch(`/api/careers?query=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error("Failed to fetch careers.");
       const data = await res.json();
       setCareers(data.careers || []);
@@ -33,7 +30,23 @@ export default function CareerResearchPage() {
       setIsLoading(false);
     }
   };
-  
+
+  // Debounce search
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchTerm.trim()) {
+        handleSearch(searchTerm);
+      } else {
+        setCareers([]);
+      }
+    }, 400); // 400ms delay
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
+
+  const handleInputChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -58,29 +71,17 @@ export default function CareerResearchPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
-        >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Enter a career name..."
             className="w-full sm:w-72 border border-gray-300 rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
           />
-          <button
-            type="submit"
-            className="bg-red-500 text-white px-6 py-3 rounded-lg font-semibold uppercase tracking-wider hover:bg-red-600 transition"
-          >
-            Search
-          </button>
-        </form>
+        </div>
 
-        {error && (
-          <div className="text-center text-red-500 mb-6">{error}</div>
-        )}
-
+        {/* Loading State */}
         {isLoading && (
           <div className="text-center py-6">
             <div className="inline-block w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -88,6 +89,12 @@ export default function CareerResearchPage() {
           </div>
         )}
 
+        {/* Error State */}
+        {error && (
+          <div className="text-center text-red-500 mb-6">{error}</div>
+        )}
+
+        {/* Results */}
         {!isLoading && careers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {careers.map((career) => (
