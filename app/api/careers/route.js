@@ -1,39 +1,35 @@
 import { NextResponse } from "next/server";
-import { parseStringPromise } from "xml2js";
 
 export async function GET(req) {
-  const username = process.env.ONET_USERNAME;
-  const password = process.env.ONET_PASSWORD;
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("query");
 
-  if (!username || !password) {
-    return NextResponse.json({ error: "Missing O*NET credentials." }, { status: 500 });
+  if (!query) {
+    return NextResponse.json({ error: "Missing search query" }, { status: 400 });
   }
 
   try {
-    const basicAuth = Buffer.from(`${username}:${password}`).toString("base64");
-
-    // ✅ Fetch ALL occupations, no keyword
-    const res = await fetch(`https://services.onetcenter.org/ws/online/occupations`, {
+    const res = await fetch(`https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&num_pages=1`, {
+      method: "GET",
       headers: {
-        Authorization: `Basic ${basicAuth}`,
-        Accept: "application/xml",
+        "X-RapidAPI-Key": process.env.NEXT_PUBLIC_JSEARCH_API_KEY,
+        "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
       },
     });
+    
+    const data = await res.json();
+    
+    console.log("🔥 JSearch API raw data:", data); // <-- Add this
+    
 
-    const xml = await res.text();
-    const result = await parseStringPromise(xml, { explicitArray: false });
+    const careers = (data.data || []).map((job) => ({
+      title: job.job_title,
+      id: job.job_id, // Using job_id instead of code now
+    }));
 
-    const list = result?.occupations?.occupation || [];
-    const occupations = Array.isArray(list) ? list : [list];
-
-    return NextResponse.json({
-      occupation: occupations.map((o) => ({
-        title: o.title,
-        code: o.code,
-      })),
-    });
+    return NextResponse.json({ careers });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to fetch O*NET data." }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch careers." }, { status: 500 });
   }
 }
