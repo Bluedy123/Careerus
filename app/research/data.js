@@ -308,7 +308,7 @@ export const careerData = [
       ],
     },
     {
-      category: 'Tech',
+      category: 'Technology',
       image: '/images/tech.jpg',
       careers: [
         {
