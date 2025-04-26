@@ -1,51 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import Image from "next/image";
+import { careerData } from "./data";
 
 export default function CareerResearchPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [careers, setCareers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [openCategory, setOpenCategory] = useState(null);
 
-  const handleSearch = async (query) => {
-    if (!query.trim()) {
-      setCareers([]);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/careers?query=${encodeURIComponent(query)}`);
-      if (!res.ok) throw new Error("Failed to fetch careers.");
-      const data = await res.json();
-      setCareers(data.careers || []);
-    } catch (err) {
-      console.error(err);
-      setError("Error fetching careers. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Debounce search
-  useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (searchTerm.trim()) {
-        handleSearch(searchTerm);
-      } else {
-        setCareers([]);
-      }
-    }, 400); // 400ms delay
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
-
-  const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+  const toggleCategory = (categoryName) => {
+    setOpenCategory((prev) => (prev === categoryName ? null : categoryName));
   };
 
   return (
@@ -60,61 +23,48 @@ export default function CareerResearchPage() {
         </p>
       </header>
 
-      {/* Search Section */}
-      <section className="max-w-6xl mx-auto py-16 px-6">
-        <div className="mb-6 text-center">
-          <h2 className="text-3xl font-semibold text-gray-900">
-            Find Your Dream Career
-          </h2>
-          <p className="text-lg text-gray-700 mt-2">
-            Enter a career name to explore detailed insights and information.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleInputChange}
-            placeholder="Enter a career name..."
-            className="w-full sm:w-72 border border-gray-300 rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-6">
-            <div className="inline-block w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-700 mt-2">Searching careers...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center text-red-500 mb-6">{error}</div>
-        )}
-
-        {/* Results */}
-        {!isLoading && careers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {careers.map((career) => (
-              <div
-                key={career.id}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              >
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {career.title}
-                </h3>
+      {/* Main Content */}
+      <section className="max-w-7xl mx-auto py-16 px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {careerData.map((category) => (
+          <div
+            key={category.category}
+            className="bg-white rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105"
+          >
+            <button
+              onClick={() => toggleCategory(category.category)}
+              className="w-full focus:outline-none"
+            >
+              <Image
+                src={category.image}
+                alt={category.category}
+                width={600}
+                height={400}
+                className="object-cover w-full h-48"
+              />
+              <div className="p-6 text-center">
+                <h2 className="text-2xl font-bold text-gray-800">{category.category}</h2>
               </div>
-            ))}
-          </div>
-        )}
+            </button>
 
-        {!isLoading && careers.length === 0 && searchTerm.length > 0 && !error && (
-          <div className="text-center mt-6 text-gray-500">
-            No results found for “{searchTerm}”.
+            {openCategory === category.category && (
+              <div className="p-6 border-t bg-gray-50">
+                <ul className="space-y-3">
+                  {category.careers.map((career) => (
+                    <li key={career.id}>
+                      <a
+                        href={`/research/${career.id}`}
+                        className="text-blue-600 hover:underline block text-lg"
+                      >
+                        {career.title}
+                      </a>
+                      <p className="text-gray-600 text-sm">{career.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </section>
     </div>
   );
