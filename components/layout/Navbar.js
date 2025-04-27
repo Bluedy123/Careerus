@@ -84,7 +84,8 @@ export default function Navigation() {
         { label: "Skills Management", href: "/skillmanagement" },
         { label: "Career Preferences", href: "/careerpreferences" },
         { label: "Career Report", href: "/career-report" },
-        { label: "Feedback", href: "/feedback" }
+        { label: "Feedback", href: "/feedback" },
+        { label: "Dashboard", href: "/dashboards" }
       ]
     },
     {
