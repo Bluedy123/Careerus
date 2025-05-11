@@ -24,6 +24,7 @@ export function FeedbackEmployer() {
         );
     }, []);
 
+    // Fetch login user information
     useEffect(() => {
         async function getLoginUser() {
             const { user } = await getUser();
@@ -111,10 +112,7 @@ export function FeedbackEmployer() {
                                     Student&apos;s Full Name:
                                 </span>
                                 <span className="ml-1">
-                                    {
-                                        selectedStudent?.user_profiles[0]
-                                            .full_name
-                                    }
+                                    {selectedStudent?.user_profiles.full_name}
                                 </span>
                             </div>
                         )}
